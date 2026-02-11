@@ -22,8 +22,8 @@ This is a demo created in XXX days after work hours for a presentation during my
 
 ## Lifecycle command
 [!IMPORTANT] TODO : ensure the that compose-prod.yaml is targeted
-- `docker-compose up -d` to start the application with **dev profile** `(you need a .env file)`
-- `docker compose -f compose-prod.yaml up --build` to build and start the application with **production profile** `(env variable corresponding to those from .example.env need to exist)`
+- `docker-compose up -d` to start the application with **dev profile** `(you need a valid .env file)`
+- `docker compose -f compose-prod.yaml up --build` to build and start the application with **production profile** `(you need a valid .env file)`
 - `docker-compose down` to **stop** the application
 - `docker-compose down -v` to **stop and remove** registered data from the application
 
@@ -32,13 +32,14 @@ This is a demo created in XXX days after work hours for a presentation during my
 1. Open a terminal and clone the project with this command `https://gitlab.lamy.mobi/LeGall/s4_covoitmobile.git`
 2. Create and configure a `.env` file following the template `.example.env`
 3. Ensure `Docker` is running on you computer
-4. In a terminal use the command `docker-compose up -d`
-5. Open a `web browser`
-6. Connect yourself on the database interface at `http://localhost:8888`
-    - **login :** TODO
-    - **password :** TODO
-7. The api is accessible at this url : `http://localhost:8080`
-8. [!IMPORTANT] TODO Give the valid routes : Use an api url in your web browser or a dedicated tool like `Postman` or `Insomnia`
+4. In a terminal use the command `docker compose -f compose-prod.yaml up --build`
+5. Wait a little bit, first time your computer will download some data to create the different container before starting the server
+6. Open a `web browser`
+7. Connect yourself on the database interface at `http://localhost:8888`
+    - **login : admin@admin.com**
+    - **password : admin**
+8. The api is accessible at this url : `http://localhost:8080`
+9. [!IMPORTANT] TODO Give the valid routes : Use an api url in your web browser or a dedicated tool like `Postman` or `Insomnia`
 
 
 ## Ports used
