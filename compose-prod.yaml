@@ -1,0 +1,53 @@
+services:
+  # --- BASE DE DONNÉES ---
+  database:
+    image: 'postgres:15-alpine'
+    container_name: covoit-db
+    restart: on-failure
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+    ports:
+      - '5432:5432'
+    volumes:
+      - covoit-db-data:/var/lib/postgresql/data
+    networks:
+      - covoit-network
+
+  # --- INTERFACE DE GESTION BDD ---
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: covoit-pgadmin
+    restart: on-failure
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - '8888:80'
+    depends_on:
+      - database
+    networks:
+      - covoit-network
+
+  app:
+    build: .
+    container_name: covoit-app
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    networks:
+      - covoit-network
+
+networks:
+  covoit-network:
+    driver: bridge
+
+volumes:
+  covoit-db-data:
