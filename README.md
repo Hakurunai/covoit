@@ -6,8 +6,8 @@ Features include an **authentication** system with **two roles**, **user managem
 This is a demo created in XXX days after work hours for a presentation during my **CDA (Application Developer/Designer) formation** at Greta.
 
 ## Prerequisites on your computer
-- Docker installed
-- Git installed
+- [Docker](https://www.docker.com/) installed
+- [Git](https://git-scm.com/install/) installed
 
 
 ## Tech Stack (clickable links)
@@ -22,8 +22,10 @@ This is a demo created in XXX days after work hours for a presentation during my
 
 ## Lifecycle command
 [!IMPORTANT] TODO : ensure the that compose-prod.yaml is targeted
-- `docker-compose up -d` to start the application
-- `docker-compose down` to stop the application
+- `docker-compose up -d` to start the application with **dev profile** `(you need a .env file)`
+- `docker compose -f compose-prod.yaml up --build` to build and start the application with **production profile** `(env variable corresponding to those from .example.env need to exist)`
+- `docker-compose down` to **stop** the application
+- `docker-compose down -v` to **stop and remove** registered data from the application
 
 
 ## How to run the app
@@ -46,7 +48,7 @@ The application will expose the following ports :
 - **Database :** Port `5432` (used from docker network)
 - **Database administer interface :** `http://localhost:8888`
 
-> **Note :** If you need to update the ports, edit the section `port` in `compose-prod.yaml` file.
+> **Note :** If you need to update the ports, edit the section `port` in `compose.yaml / compose-prod.yaml` file.
 
 
 ## Database MCD
