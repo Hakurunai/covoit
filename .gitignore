@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Looping ###
+*.lo1
