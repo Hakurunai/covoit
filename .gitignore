@@ -34,3 +34,6 @@ build/
 
 ### Looping ###
 *.lo1
+
+### Our APP ###
+.env
