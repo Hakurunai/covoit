@@ -1,9 +1,38 @@
 services:
-  postgres:
-    image: 'postgres:latest'
+  # --- BASE DE DONNÉES ---
+  database:
+    image: 'postgres:15-alpine'
+    container_name: covoit-db
+    restart: on-failure
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
     ports:
-      - '5432'
+      - '5432:5432'
+    volumes:
+      - covoit-db-data:/var/lib/postgresql/data
+    networks:
+      - covoit-network
+
+  # --- INTERFACE DE GESTION BDD ---
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: covoit-pgadmin
+    restart: on-failure
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - '8888:80'
+    depends_on:
+      - database
+    networks:
+      - covoit-network
+
+networks:
+  covoit-network:
+    driver: bridge
+
+volumes:
+  covoit-db-data:
