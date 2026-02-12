@@ -9,7 +9,7 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
     ports:
-      - '5432:5432'
+      - '${DB_PORT}:5432:5432'
     volumes:
       - covoit-db-data:/var/lib/postgresql/data
     networks:
@@ -24,7 +24,7 @@ services:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=admin
     ports:
-      - '8888:80'
+      - "${DB_INTERFACE_PORT}:80"
     depends_on:
       - database
     networks:
