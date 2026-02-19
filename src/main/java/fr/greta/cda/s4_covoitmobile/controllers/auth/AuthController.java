@@ -9,6 +9,7 @@ import fr.greta.cda.s4_covoitmobile.security.JwtUtils;
 import fr.greta.cda.s4_covoitmobile.security.UserDetailsImpl;
 import fr.greta.cda.s4_covoitmobile.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,13 +20,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController
 {
@@ -38,7 +37,7 @@ public class AuthController
 	{
 		Authentication authentication = authenticationManager.authenticate(
 			new UsernamePasswordAuthenticationToken(
-				loginRequest.getLogin(),
+				loginRequest.getEmail(),
 				loginRequest.getPassword()
 			)
 		);
@@ -47,6 +46,8 @@ public class AuthController
 		String jwt = jwtUtils.generateJwtToken(authentication);
 		
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+		
+		if (userDetails == null) {return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();}
 		
 		RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 		
