@@ -54,8 +54,6 @@ public class SecurityConfig
 	{
 		return RoleHierarchyImpl.withDefaultRolePrefix()
 			.role(EAccountRole.ADMIN)
-			.implies(EAccountRole.MODERATOR)
-			.role(EAccountRole.MODERATOR)
 			.implies(EAccountRole.USER)
 			.build();
 	}

@@ -1,6 +1,6 @@
 package fr.greta.cda.s4_covoitmobile.exceptions;
 
-import fr.greta.cda.s4_covoitmobile.dtos.ErrorMessageDto;
+import fr.greta.cda.s4_covoitmobile.dtos.ErrorMessageResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -17,11 +17,11 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler
 {
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public ErrorMessageDto handleResourceNotFound(ResourceNotFoundException ex)
+	public ErrorMessageResponse handleResourceNotFound(ResourceNotFoundException ex)
 	{
 		log.warn("Resource not found : {}}", ex.getMessage());
 		
-		return new ErrorMessageDto(
+		return new ErrorMessageResponse(
 			HttpStatus.NOT_FOUND.value(),
 			LocalDateTime.now(),
 			"Resource not found"
@@ -30,11 +30,11 @@ public class GlobalExceptionHandler
 	
 	@ExceptionHandler(AuthorizationDeniedException.class)
 	@ResponseStatus(HttpStatus.FORBIDDEN)
-	public ErrorMessageDto handleBadCredentials(AuthorizationDeniedException ex)
+	public ErrorMessageResponse handleBadCredentials(AuthorizationDeniedException ex)
 	{
 		log.info("AuthorizationDeniedException : {}", ex.getMessage());
 		
-		return new ErrorMessageDto(
+		return new ErrorMessageResponse(
 			HttpStatus.FORBIDDEN.value(),
 			LocalDateTime.now(),
 			"Your rights does not allow you the access of this resource"
@@ -43,11 +43,11 @@ public class GlobalExceptionHandler
 	
 	@ExceptionHandler(BadCredentialsException.class)
 	@ResponseStatus(HttpStatus.UNAUTHORIZED)
-	public ErrorMessageDto handleBadCredentials(BadCredentialsException ex)
+	public ErrorMessageResponse handleBadCredentials(BadCredentialsException ex)
 	{
 		log.info("BadCredentialsException : {}", ex.getMessage());
 		
-		return new ErrorMessageDto(
+		return new ErrorMessageResponse(
 			HttpStatus.UNAUTHORIZED.value(),
 			LocalDateTime.now(),
 			"Id or password incorrect"
@@ -56,11 +56,11 @@ public class GlobalExceptionHandler
 	
 	@ExceptionHandler(TokenRefreshException.class)
 	@ResponseStatus(HttpStatus.FORBIDDEN)
-	public ErrorMessageDto handleTokenRefreshException(TokenRefreshException ex, WebRequest request)
+	public ErrorMessageResponse handleTokenRefreshException(TokenRefreshException ex, WebRequest request)
 	{
 		log.warn("TokenRefreshException : {}", ex.getMessage());
 		
-		return new ErrorMessageDto(
+		return new ErrorMessageResponse(
 			HttpStatus.FORBIDDEN.value(),
 			LocalDateTime.now(),
 			ex.getMessage());
@@ -75,11 +75,11 @@ public class GlobalExceptionHandler
 	 */
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-	public ErrorMessageDto handleGlobalException(Exception ex, WebRequest request)
+	public ErrorMessageResponse handleGlobalException(Exception ex, WebRequest request)
 	{
 		log.error("Unhandled exception : ", ex);
 		
-		return new ErrorMessageDto(
+		return new ErrorMessageResponse(
 			HttpStatus.INTERNAL_SERVER_ERROR.value(),
 			LocalDateTime.now(),
 			"An internal error occurred. If the issue subsist, please contact our support.");

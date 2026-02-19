@@ -7,10 +7,9 @@ import java.util.List;
 
 @Data
 @Builder
-public class UserResponseDto
+public class UserCreatedResponse
 {
 	private Long id;
-	private String login;
 	private List<String> roles;
 	private String status;
 }
