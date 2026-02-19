@@ -1,19 +1,21 @@
 package fr.greta.cda.s4_covoitmobile.controllers.auth;
 
-import fr.greta.cda.s4_covoitmobile.dtos.LoginRequest;
-import fr.greta.cda.s4_covoitmobile.dtos.LoginResponse;
-import fr.greta.cda.s4_covoitmobile.dtos.TokenRefreshRequest;
-import fr.greta.cda.s4_covoitmobile.dtos.TokenRefreshResponse;
+import fr.greta.cda.s4_covoitmobile.dtos.auth.LoginRequest;
+import fr.greta.cda.s4_covoitmobile.dtos.auth.LoginResponse;
+import fr.greta.cda.s4_covoitmobile.dtos.auth.TokenRefreshRequest;
+import fr.greta.cda.s4_covoitmobile.dtos.auth.TokenRefreshResponse;
 import fr.greta.cda.s4_covoitmobile.models.RefreshToken;
 import fr.greta.cda.s4_covoitmobile.security.JwtUtils;
 import fr.greta.cda.s4_covoitmobile.security.UserDetailsImpl;
 import fr.greta.cda.s4_covoitmobile.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,7 +47,6 @@ public class AuthController
 		String jwt = jwtUtils.generateJwtToken(authentication);
 		
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-		assert (userDetails != null);
 		
 		RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 		
@@ -62,14 +63,20 @@ public class AuthController
 	{
 		String requestRefreshToken = request.getRefreshToken();
 		
-		return refreshTokenService.findByToken(requestRefreshToken)
-			.map(refreshTokenService::verifyExpiration)
-			.map(RefreshToken::getUser)
-			.map(user ->
-			{
-				String token = jwtUtils.generateTokenFromUsername(user.getLogin());
-				return ResponseEntity.ok(new TokenRefreshResponse(token));
-			})
-			.orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+		RefreshToken refreshToken = refreshTokenService.findByToken(requestRefreshToken);
+		refreshTokenService.verifyExpiration(refreshToken);
+		String token = jwtUtils.generateTokenFromUsername(refreshToken.getUser().getLogin());
+		return ResponseEntity.ok(new TokenRefreshResponse(token));
+	}
+	
+	@PostMapping("/logout")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<String> logoutSelf(@AuthenticationPrincipal UserDetailsImpl userDetails)
+	{
+		refreshTokenService.deleteByUserId(userDetails.getId());
+		
+		SecurityContextHolder.clearContext();
+		
+		return ResponseEntity.ok("Disconnection success");
 	}
 }

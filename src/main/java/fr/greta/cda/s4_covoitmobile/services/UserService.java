@@ -2,6 +2,7 @@ package fr.greta.cda.s4_covoitmobile.services;
 
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
+import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
 import fr.greta.cda.s4_covoitmobile.models.User;
 import fr.greta.cda.s4_covoitmobile.repositories.AccountRoleRepository;
 import fr.greta.cda.s4_covoitmobile.repositories.AccountStatusRepository;
@@ -33,16 +34,18 @@ public class UserService
 				role -> newUser.getRoles().add(role),
 				() ->
 				{
-					throw new RuntimeException("Error : Role not found");
-				});
+					throw new ResourceNotFoundException("Role", "role", EAccountRole.ROLE_USER.toString());
+				}
+			);
 		
 		accountStatusRepository.findByName(EAccountStatus.PENDING)
 			.ifPresentOrElse(
 				newUser::setAccountStatus,
 				() ->
 				{
-					throw new RuntimeException("Error : Status not found");
-				});
+					throw new ResourceNotFoundException("Status", "pending", EAccountStatus.PENDING.toString());
+				}
+			);
 		
 		return userRepository.save(newUser);
 	}

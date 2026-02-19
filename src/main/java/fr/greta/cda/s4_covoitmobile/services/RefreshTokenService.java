@@ -1,21 +1,24 @@
 package fr.greta.cda.s4_covoitmobile.services;
 
+import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
+import fr.greta.cda.s4_covoitmobile.exceptions.TokenRefreshException;
 import fr.greta.cda.s4_covoitmobile.models.RefreshToken;
 import fr.greta.cda.s4_covoitmobile.models.User;
 import fr.greta.cda.s4_covoitmobile.repositories.RefreshTokenRepository;
 import fr.greta.cda.s4_covoitmobile.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RefreshTokenService
 {
 	@Value("${covoit.app.jwtRefreshExpiration}")
@@ -24,16 +27,11 @@ public class RefreshTokenService
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final UserRepository userRepository;
 	
-	public Optional<RefreshToken> findByToken(String token)
-	{
-		return refreshTokenRepository.findByToken(token);
-	}
-	
 	@Transactional
 	public RefreshToken createRefreshToken(Long userId)
 	{
 		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new RuntimeException("User id invalid"));
+			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 		
 		//remove older token if exist
 		refreshTokenRepository.deleteByUser(user);
@@ -45,16 +43,34 @@ public class RefreshTokenService
 		refreshToken.setExpiryDate(Instant.now().plus(refreshTokenDuration));
 		refreshToken.setToken(UUID.randomUUID().toString());
 		
-		return refreshTokenRepository.save(refreshToken);
+		RefreshToken newToken = refreshTokenRepository.save(refreshToken);
+		log.info("Refresh token created for user ID : {}", userId);
+		return newToken;
 	}
 	
-	public RefreshToken verifyExpiration(RefreshToken token)
+	public RefreshToken findByToken(String token)
+	{
+		return refreshTokenRepository
+			.findByToken(token)
+			.orElseThrow(() -> new TokenRefreshException(token, "Unknown or revoked token refresh used"));
+	}
+	
+	public void verifyExpiration(RefreshToken token)
 	{
 		if (token.getExpiryDate().compareTo(Instant.now()) < 0)
 		{
 			refreshTokenRepository.delete(token);
-			throw new RuntimeException("Refresh token was expired. Please make a new signin request");
+			throw new TokenRefreshException(token.getToken(), "Refresh token as expired");
 		}
-		return token;
+	}
+	
+	@Transactional
+	public void deleteByUserId(Long userId)
+	{
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+		
+		refreshTokenRepository.deleteByUser(user);
+		log.info("Refresh Token deleted for user ID : {}", userId);
 	}
 }

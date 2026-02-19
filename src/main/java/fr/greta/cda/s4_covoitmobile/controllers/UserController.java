@@ -19,7 +19,7 @@ public class UserController
 	
 	@PostMapping("/create")
 	@ResponseStatus(HttpStatus.CREATED)
-	public User CreateUser(@RequestBody User user)
+	public User createUser(@RequestBody User user)
 	{
 		return userService.registerNewUser(user.getLogin(), user.getPassword());
 	}
