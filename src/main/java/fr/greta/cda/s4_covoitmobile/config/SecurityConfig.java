@@ -63,7 +63,7 @@ public class SecurityConfig
 	public SecurityFilterChain filterChain(HttpSecurity http)
 	{
 		http
-			.csrf(csrf -> csrf.disable()) //we made an api, no need for us here, same for session
+			.csrf(AbstractHttpConfigurer::disable) //we made an api, no need for us here, same for session
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(
 				auth -> auth

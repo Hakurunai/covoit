@@ -36,7 +36,7 @@ public class DatabaseInitializer implements CommandLineRunner
 	
 	@Transactional
 	@Override
-	public void run(final String... args) throws Exception
+	public void run(final String... args)
 	{
 		log.info("Start database initialization");
 		

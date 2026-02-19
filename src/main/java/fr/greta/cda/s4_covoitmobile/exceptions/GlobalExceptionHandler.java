@@ -8,7 +8,6 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 
@@ -16,6 +15,7 @@ import java.time.LocalDateTime;
 @Slf4j
 public class GlobalExceptionHandler
 {
+	@ExceptionHandler(ResourceNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ErrorMessageResponse handleResourceNotFound(ResourceNotFoundException ex)
 	{
@@ -56,7 +56,7 @@ public class GlobalExceptionHandler
 	
 	@ExceptionHandler(TokenRefreshException.class)
 	@ResponseStatus(HttpStatus.FORBIDDEN)
-	public ErrorMessageResponse handleTokenRefreshException(TokenRefreshException ex, WebRequest request)
+	public ErrorMessageResponse handleTokenRefreshException(TokenRefreshException ex)
 	{
 		log.warn("TokenRefreshException : {}", ex.getMessage());
 		
@@ -70,12 +70,11 @@ public class GlobalExceptionHandler
 	 * Our safety net
 	 *
 	 * @param ex      the exception thrown
-	 * @param request the request causing the exception
 	 * @return a JSON dtos with a generic message
 	 */
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-	public ErrorMessageResponse handleGlobalException(Exception ex, WebRequest request)
+	public ErrorMessageResponse handleGlobalException(Exception ex)
 	{
 		log.error("Unhandled exception : ", ex);
 		
