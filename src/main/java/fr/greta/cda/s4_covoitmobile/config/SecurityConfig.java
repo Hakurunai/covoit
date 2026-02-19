@@ -1,13 +1,17 @@
 package fr.greta.cda.s4_covoitmobile.config;
 
+import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.security.AuthTokenFilter;
 import fr.greta.cda.s4_covoitmobile.security.UserDetailServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig
 {
@@ -42,6 +47,17 @@ public class SecurityConfig
 	public PasswordEncoder passwordEncoder()
 	{
 		return new BCryptPasswordEncoder();
+	}
+	
+	@Bean
+	public RoleHierarchy roleHierarchy()
+	{
+		return RoleHierarchyImpl.withDefaultRolePrefix()
+			.role(EAccountRole.ADMIN)
+			.implies(EAccountRole.MODERATOR)
+			.role(EAccountRole.MODERATOR)
+			.implies(EAccountRole.USER)
+			.build();
 	}
 	
 	@Bean

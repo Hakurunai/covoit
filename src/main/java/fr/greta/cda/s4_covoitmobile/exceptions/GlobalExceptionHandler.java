@@ -4,6 +4,7 @@ import fr.greta.cda.s4_covoitmobile.dtos.ErrorMessageDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -27,11 +28,24 @@ public class GlobalExceptionHandler
 		);
 	}
 	
+	@ExceptionHandler(AuthorizationDeniedException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public ErrorMessageDto handleBadCredentials(AuthorizationDeniedException ex)
+	{
+		log.info("AuthorizationDeniedException : {}", ex.getMessage());
+		
+		return new ErrorMessageDto(
+			HttpStatus.FORBIDDEN.value(),
+			LocalDateTime.now(),
+			"Your rights does not allow you the access of this resource"
+		);
+	}
+	
 	@ExceptionHandler(BadCredentialsException.class)
 	@ResponseStatus(HttpStatus.UNAUTHORIZED)
 	public ErrorMessageDto handleBadCredentials(BadCredentialsException ex)
 	{
-		log.warn("BadCredentialsException : {}", ex.getMessage());
+		log.info("BadCredentialsException : {}", ex.getMessage());
 		
 		return new ErrorMessageDto(
 			HttpStatus.UNAUTHORIZED.value(),

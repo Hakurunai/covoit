@@ -12,6 +12,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class UserService
@@ -23,28 +25,25 @@ public class UserService
 	private final PasswordEncoder passwordEncoder;
 	
 	@Transactional
-	public User registerNewUser(String mail, String password)
+	public User registerNewUser(String mail, String password, List<EAccountRole> roles, EAccountStatus status)
 	{
 		User newUser = new User();
 		newUser.setLogin(mail);
 		newUser.setPassword(passwordEncoder.encode(password));
 		
-		accountRoleRepository.findByName(EAccountRole.ROLE_USER)
-			.ifPresentOrElse(
-				role -> newUser.getRoles().add(role),
-				() ->
-				{
-					throw new ResourceNotFoundException("Role", "role", EAccountRole.ROLE_USER.toString());
-				}
-			);
+		for (EAccountRole role : roles)
+		{
+			accountRoleRepository.findByName(role)
+				.ifPresentOrElse(
+					roleFound -> newUser.getRoles().add(roleFound),
+					() -> {throw new ResourceNotFoundException("Role", "role", role.toString());}
+				);
+		}
 		
-		accountStatusRepository.findByName(EAccountStatus.PENDING)
+		accountStatusRepository.findByName(status)
 			.ifPresentOrElse(
 				newUser::setAccountStatus,
-				() ->
-				{
-					throw new ResourceNotFoundException("Status", "pending", EAccountStatus.PENDING.toString());
-				}
+				() -> {throw new ResourceNotFoundException("Status", "status", status.toString());}
 			);
 		
 		return userRepository.save(newUser);
