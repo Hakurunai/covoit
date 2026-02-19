@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -34,6 +35,11 @@ public class AuthTokenFilter extends OncePerRequestFilter
 				String username = jwtUtils.getUserNameFromJwtToken(jwt);
 				
 				UserDetails userDetails = userDetailService.loadUserByUsername(username);
+				if (userDetails instanceof UserDetailsImpl customUser)
+				{
+					MDC.put("userId", String.valueOf(customUser.getId()));
+				}
+				
 				UsernamePasswordAuthenticationToken authentication =
 					new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 				
@@ -47,7 +53,14 @@ public class AuthTokenFilter extends OncePerRequestFilter
 			logger.error("Impossible de définir l'authentification : {}", e);
 		}
 		
-		filterChain.doFilter(request, response);
+		try
+		{
+			filterChain.doFilter(request, response);
+		}
+		finally
+		{
+			MDC.clear();
+		}
 	}
 	
 	private String parseJwt(HttpServletRequest request)
