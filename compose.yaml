@@ -25,6 +25,8 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=admin
     ports:
       - "${DB_INTERFACE_PORT}:80"
+    volumes:
+      - covoit-pgadmin-data:/var/lib/pgadmin
     depends_on:
       - database
     networks:
@@ -36,3 +38,4 @@ networks:
 
 volumes:
   covoit-db-data:
+  covoit-pgadmin-data:
