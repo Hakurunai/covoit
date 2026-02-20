@@ -2,10 +2,10 @@ package fr.greta.cda.s4_covoitmobile;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
-@Import(TestcontainersConfiguration.class)
 @SpringBootTest
+@ActiveProfiles("test")
 class S4CovoitMobileApplicationTests
 {
 	
@@ -13,5 +13,4 @@ class S4CovoitMobileApplicationTests
 	void contextLoads()
 	{
 	}
-	
 }
