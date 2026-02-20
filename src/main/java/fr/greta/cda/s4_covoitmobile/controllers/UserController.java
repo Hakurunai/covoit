@@ -4,6 +4,7 @@ import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
 import fr.greta.cda.s4_covoitmobile.dto.user.CreateUserRequest;
 import fr.greta.cda.s4_covoitmobile.dto.user.CreateUserResponse;
+import fr.greta.cda.s4_covoitmobile.dto.user.GetAllUserResponse;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileResponse;
 import fr.greta.cda.s4_covoitmobile.models.User;
@@ -68,6 +69,13 @@ public class UserController
 		CreateUserProfileResponse response = new CreateUserProfileResponse();
 		response.setData("Your account is now activated");
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+	
+	@GetMapping("/persons")
+	@IsAdmin
+	public ResponseEntity<List<GetAllUserResponse>> getAllUser()
+	{
+		return ResponseEntity.ok(userService.getAllUsersData());
 	}
 	
 	@GetMapping("/me")

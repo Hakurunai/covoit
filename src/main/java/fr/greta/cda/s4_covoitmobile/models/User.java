@@ -28,6 +28,11 @@ public class User extends TimeStampedEntity
 	@NotBlank
 	private String password;
 	
+	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+	@PrimaryKeyJoinColumn
+	@EqualsAndHashCode.Exclude
+	private UserProfile userProfile;
+	
 	@ManyToOne
 	@JoinColumn(name = "account_status_id")
 	private AccountStatus accountStatus;
@@ -39,4 +44,8 @@ public class User extends TimeStampedEntity
 		inverseJoinColumns = @JoinColumn(name = "role_id")
 	)
 	private Set<AccountRole> roles = new HashSet<>();
+	
+	@OneToOne(mappedBy = "user")
+	@EqualsAndHashCode.Exclude
+	private RefreshToken refreshToken;
 }

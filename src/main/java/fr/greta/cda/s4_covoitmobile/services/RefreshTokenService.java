@@ -70,7 +70,14 @@ public class RefreshTokenService
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 		
-		refreshTokenRepository.deleteByUser(user);
-		log.info("Refresh Token deleted for user ID : {}", userId);
+		RefreshToken refreshToken = user.getRefreshToken();
+		if (refreshToken != null)
+		{
+			user.setRefreshToken(null);
+			
+			refreshTokenRepository.delete(refreshToken);
+			
+			log.info("Refresh Token deleted and link broken for user ID : {}", userId);
+		}
 	}
 }

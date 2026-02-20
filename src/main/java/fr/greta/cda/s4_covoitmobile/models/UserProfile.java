@@ -30,5 +30,6 @@ public class UserProfile extends TimeStampedEntity
 	@OneToOne
 	@MapsId //we use the id attribute of a User entity as our own id
 	@JoinColumn(name = "id")
+	@EqualsAndHashCode.Exclude
 	private User user;
 }
