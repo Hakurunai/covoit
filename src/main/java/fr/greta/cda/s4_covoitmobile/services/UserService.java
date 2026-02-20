@@ -62,10 +62,20 @@ public class UserService
 	
 	
 	@Transactional
-	public UserProfile completeProfile(String email, CreateUserProfileRequest dto)
+	public UserProfile completeProfile(Long userId, CreateUserProfileRequest dto)
 	{
-		User user = userRepository.findByEmail(email)
-			.orElseThrow(() -> new RuntimeException("User not found"));
+		if (userId == null)
+		{
+			throw new IllegalArgumentException("User ID must not be null");
+		}
+		
+		if (userProfileRepository.existsById(userId))
+		{
+			throw new AlreadyExistException("Profile for user ID " + userId + " already exists");
+		}
+		
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 		
 		UserProfile profile = new UserProfile();
 		profile.setUser(user);
@@ -74,7 +84,7 @@ public class UserService
 		profile.setPhone(dto.getPhone());
 		
 		AccountStatus activeStatus = accountStatusRepository.findByName(EAccountStatus.ACTIVE)
-			.orElseThrow(() -> new RuntimeException("Status ACTIVE not found"));
+			.orElseThrow(() -> new ResourceNotFoundException("Account status", "status", EAccountStatus.ACTIVE.name()));
 		user.setAccountStatus(activeStatus);
 		
 		userRepository.save(user);

@@ -1,5 +1,6 @@
 package fr.greta.cda.s4_covoitmobile.security;
 
+import fr.greta.cda.s4_covoitmobile.models.User;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -35,18 +36,19 @@ public class JwtUtils
 			throw new IllegalStateException("Principal is not an instance of UserDetailsImpl");
 		}
 		
-		return buildTokenFromUsername(userPrincipal.getUsername());
+		return buildToken(userPrincipal.getId(), userPrincipal.getUsername());
 	}
 	
-	public String generateTokenFromUsername(String username)
+	public String generateTokenFromUser(User user)
 	{
-		return buildTokenFromUsername(username);
+		return buildToken(user.getId(), user.getEmail());
 	}
 	
-	private String buildTokenFromUsername(String username)
+	private String buildToken(Long userId, String username)
 	{
 		return Jwts.builder()
 			.subject(username)
+			.claim("id", userId)
 			.issuedAt(new Date())
 			.expiration(new Date((new Date()).getTime() + jwtExpiration.toMillis()))
 			.signWith(key())

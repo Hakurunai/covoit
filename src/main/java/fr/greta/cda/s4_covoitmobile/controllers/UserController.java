@@ -7,6 +7,7 @@ import fr.greta.cda.s4_covoitmobile.dto.user.CreateUserResponse;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileResponse;
 import fr.greta.cda.s4_covoitmobile.models.User;
+import fr.greta.cda.s4_covoitmobile.security.UserDetailsImpl;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsAdmin;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsUser;
 import fr.greta.cda.s4_covoitmobile.services.UserService;
@@ -14,13 +15,15 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class UserController
@@ -53,9 +56,15 @@ public class UserController
 	@PostMapping("/person")
 	@IsUser
 	public ResponseEntity<CreateUserProfileResponse> setupProfile(@Valid @RequestBody CreateUserProfileRequest request,
-		Principal principal)
+		Authentication authentication)
 	{
-		userService.completeProfile(principal.getName(), request);
+		Long userId = Optional.ofNullable((UserDetailsImpl) authentication.getPrincipal())
+			.map(UserDetailsImpl::getId)
+			.orElseThrow(
+				() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User ID not found in security context"));
+		
+		userService.completeProfile(userId, request);
+		
 		CreateUserProfileResponse response = new CreateUserProfileResponse();
 		response.setData("Your account is now activated");
 		return new ResponseEntity<>(response, HttpStatus.CREATED);

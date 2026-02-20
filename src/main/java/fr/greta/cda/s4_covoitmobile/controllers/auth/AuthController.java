@@ -5,6 +5,7 @@ import fr.greta.cda.s4_covoitmobile.dto.auth.LoginResponse;
 import fr.greta.cda.s4_covoitmobile.dto.auth.TokenRefreshRequest;
 import fr.greta.cda.s4_covoitmobile.dto.auth.TokenRefreshResponse;
 import fr.greta.cda.s4_covoitmobile.models.RefreshToken;
+import fr.greta.cda.s4_covoitmobile.models.User;
 import fr.greta.cda.s4_covoitmobile.security.JwtUtils;
 import fr.greta.cda.s4_covoitmobile.security.UserDetailsImpl;
 import fr.greta.cda.s4_covoitmobile.services.RefreshTokenService;
@@ -71,7 +72,9 @@ public class AuthController
 		
 		RefreshToken refreshToken = refreshTokenService.findByToken(requestRefreshToken);
 		refreshTokenService.verifyExpiration(refreshToken);
-		String token = jwtUtils.generateTokenFromUsername(refreshToken.getUser().getEmail());
+		
+		User user = refreshToken.getUser();
+		String token = jwtUtils.generateTokenFromUser(user);
 		return ResponseEntity.ok(new TokenRefreshResponse(token));
 	}
 	
