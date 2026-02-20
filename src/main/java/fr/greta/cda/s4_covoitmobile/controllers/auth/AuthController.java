@@ -35,7 +35,7 @@ public class AuthController
 	private final RefreshTokenService refreshTokenService;
 	
 	@PostMapping("/login")
-	public ResponseEntity<LoginResponse> authenticateUser(@RequestBody LoginRequest loginRequest)
+	public ResponseEntity<LoginResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
 	{
 		Authentication authentication = authenticationManager.authenticate(
 			new UsernamePasswordAuthenticationToken(

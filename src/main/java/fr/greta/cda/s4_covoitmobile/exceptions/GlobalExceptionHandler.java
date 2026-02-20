@@ -62,9 +62,17 @@ public class GlobalExceptionHandler
 		
 		String detailedMessage = String.join(", ", errors);
 		
-		log.info("Validation failed: {}", detailedMessage);
+		log.warn("Validation failed: {}", detailedMessage);
 		
 		return buildError(HttpStatus.BAD_REQUEST, "Validation failed: " + detailedMessage);
+	}
+	
+	@ExceptionHandler(AlreadyExistException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErrorMessageResponse handleAlreadyExist(AlreadyExistException ex)
+	{
+		log.warn("AlreadyExistException : {}", ex.getMessage());
+		return buildError(HttpStatus.CONFLICT, ex.getMessage());
 	}
 	
 	/**
