@@ -10,13 +10,15 @@ public class LoginResponse
 	private String token;
 	private String refreshToken;
 	private List<String> roles;
+	private String accountStatus;
 	private String type;
 	
-	public LoginResponse(String pToken, String pRefreshToken, List<String> pRoles)
+	public LoginResponse(String pToken, String pRefreshToken, List<String> pRoles, String pAccountStatus)
 	{
+		type = "Bearer";
 		token = pToken;
 		refreshToken = pRefreshToken;
-		type = "Bearer";
 		roles = pRoles;
+		accountStatus = pAccountStatus;
 	}
 }
