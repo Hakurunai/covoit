@@ -24,7 +24,8 @@ This is a demo created in XXX days after work hours for a presentation during my
 [!IMPORTANT] TODO : ensure the that compose-prod.yaml is targeted
 - `docker-compose up -d` to start the application with **dev profile** `(you need a valid .env file)`
 - `docker compose -f compose-prod.yaml up --build` to build and start the application with **production profile** `(you need a valid .env file)`
-- `docker-compose down` to **stop** the application
+- `docker-compose down` to **stop** the application as **dev profile**
+- `docker compose -f compose-prod.yaml down` to **stop** the application in **production**
 - `docker-compose down -v` to **stop and remove** registered data from the application
 
 

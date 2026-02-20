@@ -50,7 +50,9 @@ public class AuthTokenFilter extends OncePerRequestFilter
 		}
 		catch (Exception e)
 		{
-			logger.error("Impossible de définir l'authentification : {}", e);
+			logger.error("Authentication impossible : {}", e);
+			// store the message for our entryPoint
+			request.setAttribute("jwt_error", e.getMessage());
 		}
 		
 		try

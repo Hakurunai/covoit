@@ -1,6 +1,8 @@
 package fr.greta.cda.s4_covoitmobile.security;
 
+import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
 import fr.greta.cda.s4_covoitmobile.models.User;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
@@ -8,18 +10,30 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 
 @RequiredArgsConstructor
+@Getter
 public class UserDetailsImpl implements UserDetails
 {
-	private final User user;
+	private final transient User user;
 	
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities()
 	{
-		return user.getRoles().stream()
-			.map(role -> new SimpleGrantedAuthority(role.getName().name()))
-			.toList();
+		List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>(
+			user.getRoles().stream()
+				.map(role -> new SimpleGrantedAuthority(role.getName().name()))
+				.toList()
+		);
+		
+		if (user.getAccountStatus() != null &&
+			user.getAccountStatus().getName() == EAccountStatus.ACTIVE)
+		{
+			authorities.add(new SimpleGrantedAuthority("ROLE_USER_VALIDATED"));
+		}
+		
+		return authorities;
 	}
 	
 	@Override

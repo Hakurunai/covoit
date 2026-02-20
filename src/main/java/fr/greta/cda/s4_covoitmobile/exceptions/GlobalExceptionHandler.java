@@ -20,25 +20,15 @@ public class GlobalExceptionHandler
 	public ErrorMessageResponse handleResourceNotFound(ResourceNotFoundException ex)
 	{
 		log.warn("Resource not found : {}}", ex.getMessage());
-		
-		return new ErrorMessageResponse(
-			HttpStatus.NOT_FOUND.value(),
-			LocalDateTime.now(),
-			"Resource not found"
-		);
+		return buildError(HttpStatus.NOT_FOUND, "Resource not found");
 	}
 	
 	@ExceptionHandler(AuthorizationDeniedException.class)
 	@ResponseStatus(HttpStatus.FORBIDDEN)
-	public ErrorMessageResponse handleBadCredentials(AuthorizationDeniedException ex)
+	public ErrorMessageResponse handleAuthorizationDenied(AuthorizationDeniedException ex)
 	{
 		log.info("AuthorizationDeniedException : {}", ex.getMessage());
-		
-		return new ErrorMessageResponse(
-			HttpStatus.FORBIDDEN.value(),
-			LocalDateTime.now(),
-			"Your rights does not allow you the access of this resource"
-		);
+		return buildError(HttpStatus.FORBIDDEN, "Your rights does not allow you the access of this resource");
 	}
 	
 	@ExceptionHandler(BadCredentialsException.class)
@@ -46,12 +36,7 @@ public class GlobalExceptionHandler
 	public ErrorMessageResponse handleBadCredentials(BadCredentialsException ex)
 	{
 		log.info("BadCredentialsException : {}", ex.getMessage());
-		
-		return new ErrorMessageResponse(
-			HttpStatus.UNAUTHORIZED.value(),
-			LocalDateTime.now(),
-			"Id or password incorrect"
-		);
+		return buildError(HttpStatus.UNAUTHORIZED, "Id or password incorrect");
 	}
 	
 	@ExceptionHandler(TokenRefreshException.class)
@@ -59,11 +44,7 @@ public class GlobalExceptionHandler
 	public ErrorMessageResponse handleTokenRefreshException(TokenRefreshException ex)
 	{
 		log.warn("TokenRefreshException : {}", ex.getMessage());
-		
-		return new ErrorMessageResponse(
-			HttpStatus.FORBIDDEN.value(),
-			LocalDateTime.now(),
-			ex.getMessage());
+		return buildError(HttpStatus.FORBIDDEN, ex.getMessage());
 	}
 	
 	/**
@@ -78,9 +59,12 @@ public class GlobalExceptionHandler
 	{
 		log.error("Unhandled exception : ", ex);
 		
-		return new ErrorMessageResponse(
-			HttpStatus.INTERNAL_SERVER_ERROR.value(),
-			LocalDateTime.now(),
+		return buildError(HttpStatus.INTERNAL_SERVER_ERROR,
 			"An internal error occurred. If the issue subsist, please contact our support.");
+	}
+	
+	private ErrorMessageResponse buildError(HttpStatus status, String message)
+	{
+		return new ErrorMessageResponse(status.value(), LocalDateTime.now(), message, null);
 	}
 }

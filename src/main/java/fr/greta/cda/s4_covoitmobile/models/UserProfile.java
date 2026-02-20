@@ -12,11 +12,9 @@ public class UserProfile
 	@Id
 	private Long id;
 	
-	private String pseudo;
 	private String firstname;
 	private String lastname;
 	private String phone;
-	private String car;
 	
 	@OneToOne
 	@MapsId //we use the id attribute of a User entity as our own id

@@ -8,7 +8,6 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class S4CovoitMobileApplicationTests
 {
-	
 	@Test
 	void contextLoads()
 	{

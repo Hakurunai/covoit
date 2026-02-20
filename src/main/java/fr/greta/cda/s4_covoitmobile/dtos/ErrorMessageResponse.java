@@ -12,4 +12,5 @@ public class ErrorMessageResponse
 	private int statusCode;
 	private LocalDateTime timeStamp;
 	private String message;
+	private String accountStatus;
 }

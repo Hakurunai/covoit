@@ -1,13 +1,12 @@
 package fr.greta.cda.s4_covoitmobile.config;
 
-import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.security.AuthTokenFilter;
+import fr.greta.cda.s4_covoitmobile.security.CustomAccessDeniedHandler;
+import fr.greta.cda.s4_covoitmobile.security.CustomAuthenticationEntryPoint;
 import fr.greta.cda.s4_covoitmobile.security.UserDetailServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -29,6 +28,8 @@ public class SecurityConfig
 {
 	private final UserDetailServiceImpl userDetailService;
 	private final AuthTokenFilter authTokenFilter;
+	private final CustomAccessDeniedHandler customAccessDeniedHandler;
+	private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 	
 	@Bean
 	public DaoAuthenticationProvider authenticationProvider()
@@ -50,14 +51,6 @@ public class SecurityConfig
 		return new BCryptPasswordEncoder();
 	}
 	
-	@Bean
-	public RoleHierarchy roleHierarchy()
-	{
-		return RoleHierarchyImpl.withDefaultRolePrefix()
-			.role(EAccountRole.ADMIN)
-			.implies(EAccountRole.USER)
-			.build();
-	}
 	
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http)
@@ -67,12 +60,15 @@ public class SecurityConfig
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(
 				auth -> auth
-					.requestMatchers("/register").permitAll()
-					.requestMatchers("/login").permitAll()
-					.requestMatchers("/api/auth/refreshtoken").permitAll()
-					.anyRequest().authenticated()
+					.requestMatchers("/register", "/login", "/api/auth/refreshtoken").permitAll()
+					.requestMatchers("/person", "/logout").authenticated()
+					.anyRequest().hasAuthority("ROLE_USER_VALIDATED")
 			)
-			.logout(AbstractHttpConfigurer::disable);
+			.logout(AbstractHttpConfigurer::disable)
+			.exceptionHandling(exception -> exception
+				.authenticationEntryPoint(customAuthenticationEntryPoint)
+				.accessDeniedHandler(customAccessDeniedHandler)
+			);
 		
 		http.authenticationProvider(authenticationProvider());
 		http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);

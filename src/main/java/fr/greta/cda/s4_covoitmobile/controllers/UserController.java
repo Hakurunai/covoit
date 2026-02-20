@@ -2,9 +2,12 @@ package fr.greta.cda.s4_covoitmobile.controllers;
 
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
+import fr.greta.cda.s4_covoitmobile.dtos.CreateUserProfileRequest;
+import fr.greta.cda.s4_covoitmobile.dtos.CreateUserProfileResponse;
 import fr.greta.cda.s4_covoitmobile.dtos.UserCreatedResponse;
 import fr.greta.cda.s4_covoitmobile.dtos.auth.LoginRequest;
 import fr.greta.cda.s4_covoitmobile.models.User;
+import fr.greta.cda.s4_covoitmobile.security.annotations.IsAdmin;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsUser;
 import fr.greta.cda.s4_covoitmobile.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -45,10 +49,28 @@ public class UserController
 		);
 	}
 	
+	@PostMapping("/person")
+	@IsUser
+	public ResponseEntity<CreateUserProfileResponse> setupProfile(@RequestBody CreateUserProfileRequest request,
+		Principal principal)
+	{
+		userService.completeProfile(principal.getName(), request);
+		CreateUserProfileResponse response = new CreateUserProfileResponse();
+		response.setData("Your account is now activated");
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+	
 	@GetMapping("/me")
 	@IsUser
 	public ResponseEntity<String> testAuth()
 	{
 		return ResponseEntity.ok("If you see this message, you are authenticated and your role is enough to see it");
+	}
+	
+	@GetMapping("/meAdmin")
+	@IsAdmin
+	public ResponseEntity<String> testAuthAdmin()
+	{
+		return ResponseEntity.ok("If you see this message, you are authenticated and you are an admin");
 	}
 }
