@@ -1,6 +1,8 @@
 package fr.greta.cda.s4_covoitmobile.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.Instant;
@@ -17,8 +19,10 @@ public class RefreshToken {
 	private User user;
 	
 	@Column(nullable = false, unique = true, length = 64)
+	@NotBlank
 	private String token;
 	
 	@Column(nullable = false)
+	@NotNull
 	private Instant expiryDate;
 }
