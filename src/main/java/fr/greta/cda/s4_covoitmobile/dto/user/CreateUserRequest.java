@@ -13,6 +13,6 @@ public class CreateUserRequest
 	private String email;
 	
 	@NotBlank(message = "password is required")
-	@Size(min = 8, max = 64)
+	@Size(min = 8, max = 64, message = "Password length must be comprise between 8 and 64 characters")
 	private String password;
 }

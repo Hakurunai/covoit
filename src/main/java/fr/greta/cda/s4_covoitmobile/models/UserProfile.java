@@ -1,13 +1,15 @@
 package fr.greta.cda.s4_covoitmobile.models;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
-public class UserProfile
+@EqualsAndHashCode(callSuper = true)
+public class UserProfile extends TimeStampedEntity
 {
 	@Id
 	private Long id;

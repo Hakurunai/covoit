@@ -58,7 +58,7 @@ public class UserService
 	@Transactional
 	public UserProfile completeProfile(String email, CreateUserProfileRequest dto)
 	{
-		User user = userRepository.findByLogin(email)
+		User user = userRepository.findByEmail(email)
 			.orElseThrow(() -> new RuntimeException("User not found"));
 		
 		UserProfile profile = new UserProfile();

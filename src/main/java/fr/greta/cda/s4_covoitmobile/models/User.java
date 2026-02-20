@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +12,8 @@ import java.util.Set;
 @Entity
 @Table(name = "app_user")
 @Data
-public class User
+@EqualsAndHashCode(callSuper = true)
+public class User extends TimeStampedEntity
 {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

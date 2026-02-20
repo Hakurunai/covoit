@@ -77,7 +77,8 @@ public class DatabaseInitializer implements CommandLineRunner
 	
 	private void initDefaultAdmin()
 	{
-		if (userRepository.findByLogin(adminEmail).isEmpty()) {
+		if (userRepository.findByEmail(adminEmail).isEmpty())
+		{
 			userService.registerNewUser(
 				adminEmail,
 				adminPassword,

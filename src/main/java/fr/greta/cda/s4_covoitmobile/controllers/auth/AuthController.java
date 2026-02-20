@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -57,8 +58,9 @@ public class AuthController
 			.toList();
 		
 		String status = userDetails.getUser().getAccountStatus().getName().name();
+		LocalDateTime createdAt = userDetails.getUser().getCreatedAt();
 		
-		return ResponseEntity.ok(new LoginResponse(jwt, refreshToken.getToken(), roles, status));
+		return ResponseEntity.ok(new LoginResponse(jwt, refreshToken.getToken(), roles, status, createdAt));
 	}
 	
 	
