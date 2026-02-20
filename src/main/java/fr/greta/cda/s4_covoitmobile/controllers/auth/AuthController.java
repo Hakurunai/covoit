@@ -1,13 +1,14 @@
 package fr.greta.cda.s4_covoitmobile.controllers.auth;
 
-import fr.greta.cda.s4_covoitmobile.dtos.auth.LoginRequest;
-import fr.greta.cda.s4_covoitmobile.dtos.auth.LoginResponse;
-import fr.greta.cda.s4_covoitmobile.dtos.auth.TokenRefreshRequest;
-import fr.greta.cda.s4_covoitmobile.dtos.auth.TokenRefreshResponse;
+import fr.greta.cda.s4_covoitmobile.dto.auth.LoginRequest;
+import fr.greta.cda.s4_covoitmobile.dto.auth.LoginResponse;
+import fr.greta.cda.s4_covoitmobile.dto.auth.TokenRefreshRequest;
+import fr.greta.cda.s4_covoitmobile.dto.auth.TokenRefreshResponse;
 import fr.greta.cda.s4_covoitmobile.models.RefreshToken;
 import fr.greta.cda.s4_covoitmobile.security.JwtUtils;
 import fr.greta.cda.s4_covoitmobile.security.UserDetailsImpl;
 import fr.greta.cda.s4_covoitmobile.services.RefreshTokenService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,13 +63,13 @@ public class AuthController
 	
 	
 	@PostMapping("/refreshtoken")
-	public ResponseEntity<TokenRefreshResponse> refreshToken(@RequestBody TokenRefreshRequest request)
+	public ResponseEntity<TokenRefreshResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request)
 	{
 		String requestRefreshToken = request.getRefreshToken();
 		
 		RefreshToken refreshToken = refreshTokenService.findByToken(requestRefreshToken);
 		refreshTokenService.verifyExpiration(refreshToken);
-		String token = jwtUtils.generateTokenFromUsername(refreshToken.getUser().getLogin());
+		String token = jwtUtils.generateTokenFromUsername(refreshToken.getUser().getEmail());
 		return ResponseEntity.ok(new TokenRefreshResponse(token));
 	}
 	

@@ -2,7 +2,7 @@ package fr.greta.cda.s4_covoitmobile.services;
 
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
-import fr.greta.cda.s4_covoitmobile.dtos.CreateUserProfileRequest;
+import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
 import fr.greta.cda.s4_covoitmobile.models.AccountStatus;
 import fr.greta.cda.s4_covoitmobile.models.User;
@@ -33,7 +33,7 @@ public class UserService
 	public User registerNewUser(String mail, String password, List<EAccountRole> roles, EAccountStatus status)
 	{
 		User newUser = new User();
-		newUser.setLogin(mail);
+		newUser.setEmail(mail);
 		newUser.setPassword(passwordEncoder.encode(password));
 		
 		for (EAccountRole role : roles)

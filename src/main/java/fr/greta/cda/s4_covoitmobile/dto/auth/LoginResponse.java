@@ -1,4 +1,4 @@
-package fr.greta.cda.s4_covoitmobile.dtos.auth;
+package fr.greta.cda.s4_covoitmobile.dto.auth;
 
 import lombok.Data;
 

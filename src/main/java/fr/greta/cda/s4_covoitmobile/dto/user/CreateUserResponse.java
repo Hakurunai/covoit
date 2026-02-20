@@ -1,4 +1,4 @@
-package fr.greta.cda.s4_covoitmobile.dtos;
+package fr.greta.cda.s4_covoitmobile.dto.user;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class UserCreatedResponse
+public class CreateUserResponse
 {
 	private Long id;
 	private List<String> roles;

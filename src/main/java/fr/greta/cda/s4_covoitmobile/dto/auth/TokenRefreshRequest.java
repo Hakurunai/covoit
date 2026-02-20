@@ -1,5 +1,6 @@
-package fr.greta.cda.s4_covoitmobile.dtos.auth;
+package fr.greta.cda.s4_covoitmobile.dto.auth;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -7,5 +8,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class TokenRefreshRequest
 {
+	@NotBlank
 	private String refreshToken;
 }

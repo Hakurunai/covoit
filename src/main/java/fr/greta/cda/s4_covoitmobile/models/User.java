@@ -1,6 +1,8 @@
 package fr.greta.cda.s4_covoitmobile.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.HashSet;
@@ -15,10 +17,13 @@ public class User
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@Column(unique = true, nullable = false, length = 100)
-	private String login;
+	@Column(unique = true, nullable = false, length = 255)
+	@NotBlank
+	@Email
+	private String email;
 	
-	@Column(nullable = false)
+	@Column(nullable = false, length = 60)
+	@NotBlank
 	private String password;
 	
 	@ManyToOne

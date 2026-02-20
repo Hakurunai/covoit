@@ -1,6 +1,6 @@
 package fr.greta.cda.s4_covoitmobile.security;
 
-import fr.greta.cda.s4_covoitmobile.dtos.ErrorMessageResponse;
+import fr.greta.cda.s4_covoitmobile.dto.ErrorMessageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

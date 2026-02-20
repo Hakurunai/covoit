@@ -1,15 +1,17 @@
 package fr.greta.cda.s4_covoitmobile.exceptions;
 
-import fr.greta.cda.s4_covoitmobile.dtos.ErrorMessageResponse;
+import fr.greta.cda.s4_covoitmobile.dto.ErrorMessageResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestControllerAdvice
 @Slf4j
@@ -45,6 +47,24 @@ public class GlobalExceptionHandler
 	{
 		log.warn("TokenRefreshException : {}", ex.getMessage());
 		return buildError(HttpStatus.FORBIDDEN, ex.getMessage());
+	}
+	
+	
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ErrorMessageResponse handleValidationException(MethodArgumentNotValidException ex)
+	{
+		List<String> errors = ex.getBindingResult()
+			.getFieldErrors()
+			.stream()
+			.map(error -> error.getField() + ": " + error.getDefaultMessage())
+			.toList();
+		
+		String detailedMessage = String.join(", ", errors);
+		
+		log.info("Validation failed: {}", detailedMessage);
+		
+		return buildError(HttpStatus.BAD_REQUEST, "Validation failed: " + detailedMessage);
 	}
 	
 	/**

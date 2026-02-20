@@ -1,4 +1,4 @@
-package fr.greta.cda.s4_covoitmobile.dtos;
+package fr.greta.cda.s4_covoitmobile.dto.userprofile;
 
 import lombok.Data;
 

@@ -2,14 +2,15 @@ package fr.greta.cda.s4_covoitmobile.controllers;
 
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
-import fr.greta.cda.s4_covoitmobile.dtos.CreateUserProfileRequest;
-import fr.greta.cda.s4_covoitmobile.dtos.CreateUserProfileResponse;
-import fr.greta.cda.s4_covoitmobile.dtos.UserCreatedResponse;
-import fr.greta.cda.s4_covoitmobile.dtos.auth.LoginRequest;
+import fr.greta.cda.s4_covoitmobile.dto.user.CreateUserRequest;
+import fr.greta.cda.s4_covoitmobile.dto.user.CreateUserResponse;
+import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
+import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileResponse;
 import fr.greta.cda.s4_covoitmobile.models.User;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsAdmin;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsUser;
 import fr.greta.cda.s4_covoitmobile.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,16 +31,16 @@ public class UserController
 	public UserController(final UserService userService) {this.userService = userService;}
 	
 	@PostMapping("/register")
-	public ResponseEntity<UserCreatedResponse> createUser(@RequestBody LoginRequest loginRequest)
+	public ResponseEntity<CreateUserResponse> createUser(@Valid @RequestBody CreateUserRequest request)
 	{
 		User newUser = userService.registerNewUser(
-			loginRequest.getEmail(),
-			loginRequest.getPassword(),
+			request.getEmail(),
+			request.getPassword(),
 			List.of(EAccountRole.ROLE_USER),
 			EAccountStatus.PENDING);
 		
 		return ResponseEntity.status(HttpStatus.CREATED).body(
-			UserCreatedResponse.builder()
+			CreateUserResponse.builder()
 				.id(newUser.getId())
 				.roles(newUser.getRoles().stream()
 					.map(roleEntity -> roleEntity.getName().name())
@@ -51,7 +52,7 @@ public class UserController
 	
 	@PostMapping("/person")
 	@IsUser
-	public ResponseEntity<CreateUserProfileResponse> setupProfile(@RequestBody CreateUserProfileRequest request,
+	public ResponseEntity<CreateUserProfileResponse> setupProfile(@Valid @RequestBody CreateUserProfileRequest request,
 		Principal principal)
 	{
 		userService.completeProfile(principal.getName(), request);
