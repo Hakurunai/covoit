@@ -5,6 +5,7 @@ import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
 import fr.greta.cda.s4_covoitmobile.dto.user.CreateUserRequest;
 import fr.greta.cda.s4_covoitmobile.dto.user.CreateUserResponse;
 import fr.greta.cda.s4_covoitmobile.dto.user.GetAllUserResponse;
+import fr.greta.cda.s4_covoitmobile.dto.user.GetPersonByIdResponse;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileResponse;
 import fr.greta.cda.s4_covoitmobile.models.User;
@@ -17,10 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -76,6 +74,13 @@ public class UserController
 	public ResponseEntity<List<GetAllUserResponse>> getAllUser()
 	{
 		return ResponseEntity.ok(userService.getAllUsersData());
+	}
+	
+	@GetMapping("/persons/{id}")
+	@IsUser
+	public ResponseEntity<GetPersonByIdResponse> getPersonById(@PathVariable Long id)
+	{
+		return ResponseEntity.ok(userService.getUserDetail(id));
 	}
 	
 	@GetMapping("/me")

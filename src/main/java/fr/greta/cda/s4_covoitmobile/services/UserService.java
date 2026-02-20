@@ -3,6 +3,7 @@ package fr.greta.cda.s4_covoitmobile.services;
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
 import fr.greta.cda.s4_covoitmobile.dto.user.GetAllUserResponse;
+import fr.greta.cda.s4_covoitmobile.dto.user.GetPersonByIdResponse;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.exceptions.AlreadyExistException;
 import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
@@ -98,5 +99,12 @@ public class UserService
 		return userRepository.findAllWithProfileAndStatusAndRoles().stream()
 			.map(GetAllUserResponse::new)
 			.toList();
+	}
+	
+	public GetPersonByIdResponse getUserDetail(Long userId)
+	{
+		return userRepository.findByIdWithAllRelations(userId)
+			.map(GetPersonByIdResponse::new)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 	}
 }
