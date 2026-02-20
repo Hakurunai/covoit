@@ -26,8 +26,6 @@ public interface UserRepository extends JpaRepository<User, Long>
 	
 	@Query("SELECT u FROM User u " +
 		   "LEFT JOIN FETCH u.userProfile " +
-		   "LEFT JOIN FETCH u.accountStatus " +
-		   "LEFT JOIN FETCH u.refreshToken " +
 		   "WHERE u.id = :id")
 	Optional<User> findByIdWithAllRelations(@Param("id") Long id);
 }
