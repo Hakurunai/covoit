@@ -44,7 +44,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler
 			boolean hasUserRole = reachableAuthorities.stream()
 				.anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_USER"));
 			boolean isAccountValid = reachableAuthorities.stream()
-				.anyMatch(a -> Objects.equals(a.getAuthority(), "USER_VALID"));
+				.anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_USER_VALIDATED"));
 			
 			if (hasUserRole && !isAccountValid)
 			{
