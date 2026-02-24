@@ -34,9 +34,12 @@ public class RefreshTokenService
 			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 		
 		//remove older token if exist
-		refreshTokenRepository.deleteByUser(user);
-		refreshTokenRepository.flush();
-		
+		// orphanRemoval = true => the token will be deleted
+		if (user.getRefreshToken() != null)
+		{
+			user.setRefreshToken(null);
+			refreshTokenRepository.flush(); // Force la suppression de l'ancien
+		}
 		
 		RefreshToken refreshToken = new RefreshToken();
 		refreshToken.setUser(user);
@@ -74,9 +77,6 @@ public class RefreshTokenService
 		if (refreshToken != null)
 		{
 			user.setRefreshToken(null);
-			
-			refreshTokenRepository.delete(refreshToken);
-			
 			log.info("Refresh Token deleted and link broken for user ID : {}", userId);
 		}
 	}

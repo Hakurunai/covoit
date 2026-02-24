@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +24,14 @@ public class GlobalExceptionHandler
 	{
 		log.warn("Resource not found : {}}", ex.getMessage());
 		return buildError(HttpStatus.NOT_FOUND, "Resource not found");
+	}
+	
+	@ExceptionHandler(ResponseStatusException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public ErrorMessageResponse handleResponseStatusException(ResponseStatusException ex)
+	{
+		log.warn("ResponseStatusException : {}", ex.getMessage());
+		return buildError(HttpStatus.FORBIDDEN, ex.getMessage());
 	}
 	
 	@ExceptionHandler(AuthorizationDeniedException.class)

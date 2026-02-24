@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +29,11 @@ public class DatabaseInitializer implements CommandLineRunner
 	private final UserRepository userRepository;
 	private final UserService userService;
 	
+	private final Environment env;
 	@Value("${covoit.app.defaultAdminEmail}")
-	private String adminEmail;
-	
+	private String defaultAdminEmail;
 	@Value("${covoit.app.defaultAdminPassword}")
-	private String adminPassword;
+	private String defaultAdminPassword;
 	
 	@Transactional
 	@Override
@@ -43,6 +44,12 @@ public class DatabaseInitializer implements CommandLineRunner
 		initRole();
 		initStatus();
 		initDefaultAdmin();
+		
+		boolean isProduction = List.of(env.getActiveProfiles()).contains("prod");
+		if (!isProduction)
+		{
+			initDefaultUser();
+		}
 		
 		log.info("End database initialization");
 	}
@@ -77,19 +84,40 @@ public class DatabaseInitializer implements CommandLineRunner
 	
 	private void initDefaultAdmin()
 	{
-		if (userRepository.findByEmail(adminEmail).isEmpty())
+		if (userRepository.findByEmail(defaultAdminEmail).isEmpty())
 		{
 			userService.registerNewUser(
-				adminEmail,
-				adminPassword,
+				defaultAdminEmail,
+				defaultAdminPassword,
 				List.of(EAccountRole.ROLE_ADMIN),
 				EAccountStatus.ACTIVE
 			);
-			log.info("Default administrator account created : {}", adminEmail);
+			log.info("Default administrator account created : {}", defaultAdminEmail);
 		}
 		else
 		{
-			log.info("Default administrator mail : {}", adminEmail);
+			log.info("Default administrator mail : {}", defaultAdminEmail);
 		}
+	}
+	
+	private void initDefaultUser()
+	{
+		final String testEmail = "user@test.fr";
+		final String testPwd = "password123";
+		if (userRepository.findByEmail(testEmail).isEmpty())
+		{
+			userService.registerNewUser(
+				testEmail,
+				testPwd,
+				List.of(EAccountRole.ROLE_USER),
+				EAccountStatus.ACTIVE
+			);
+			log.info("Test user created with identifiers : mail = {} | pwd = {}", testEmail, testPwd);
+		}
+		else
+		{
+			log.info("Test user connexion identifiers : mail = {} | pwd = {}", testEmail, testPwd);
+		}
+		log.info("This user is not present in production");
 	}
 }

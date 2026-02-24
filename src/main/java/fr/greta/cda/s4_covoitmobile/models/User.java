@@ -45,7 +45,7 @@ public class User extends TimeStampedEntity
 	)
 	private Set<AccountRole> roles = new HashSet<>();
 	
-	@OneToOne(mappedBy = "user")
+	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	@EqualsAndHashCode.Exclude
 	private RefreshToken refreshToken;
 }

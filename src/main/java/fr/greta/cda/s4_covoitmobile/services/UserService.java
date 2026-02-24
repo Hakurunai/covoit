@@ -103,7 +103,7 @@ public class UserService
 	
 	public GetPersonByIdResponse getUserDetail(Long userId)
 	{
-		return userRepository.findByIdWithAllRelations(userId)
+		return userRepository.findByIdWithProfile(userId)
 			.map(GetPersonByIdResponse::new)
 			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 	}

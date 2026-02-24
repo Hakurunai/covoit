@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Getter
@@ -73,4 +74,10 @@ public class UserDetailsImpl implements UserDetails
 	}
 	
 	public Long getId() {return user.getId();}
+	
+	public boolean isAdmin()
+	{
+		return getAuthorities().stream()
+			.anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"));
+	}
 }

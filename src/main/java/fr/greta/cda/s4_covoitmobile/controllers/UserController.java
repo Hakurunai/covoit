@@ -17,12 +17,11 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 public class UserController
@@ -55,18 +54,36 @@ public class UserController
 	@PostMapping("/person")
 	@IsUser
 	public ResponseEntity<CreateUserProfileResponse> setupProfile(@Valid @RequestBody CreateUserProfileRequest request,
-		Authentication authentication)
+		@RequestParam(required = false) Long targetUserId,
+		@AuthenticationPrincipal UserDetailsImpl currentUser)
 	{
-		Long userId = Optional.ofNullable((UserDetailsImpl) authentication.getPrincipal())
-			.map(UserDetailsImpl::getId)
-			.orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User ID not found in security context"));
+		if (currentUser == null)
+		{
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid session or user unknown");
+		}
 		
-		userService.completeProfile(userId, request);
+		Long finalUserId;
 		
-		CreateUserProfileResponse response = new CreateUserProfileResponse();
-		response.setData("Your account is now activated");
-		return new ResponseEntity<>(response, HttpStatus.CREATED);
+		//ensure user is an admin
+		if (targetUserId != null)
+		{
+			if (currentUser.isAdmin())
+			{
+				finalUserId = targetUserId;
+			}
+			else
+			{
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+					"Only an admin is able to create the profil of another user");
+			}
+		}
+		else
+		{
+			finalUserId = currentUser.getId();
+		}
+		
+		userService.completeProfile(finalUserId, request);
+		return new ResponseEntity<>(new CreateUserProfileResponse("Your account is now activated"), HttpStatus.CREATED);
 	}
 	
 	@GetMapping("/persons")
