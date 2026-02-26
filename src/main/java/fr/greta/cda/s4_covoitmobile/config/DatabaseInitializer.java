@@ -79,14 +79,23 @@ public class DatabaseInitializer implements CommandLineRunner
 		for (UserTestData data : testUsers)
 		{
 			initUser(data.mail(), testUserPwd, List.of(EAccountRole.ROLE_USER), data.status());
-			
-			if (data.status() != EAccountStatus.PENDING)
-			{continue;}
-			
-			userService.ensureNoUserProfileForUser(data.mail());
+			if (data.status() == EAccountStatus.PENDING)
+			{
+				userService.ensureNoUserProfileForUser(data.mail());
+			}
 		}
+		
+		removeUser("userNonValid@mail.fr");
 		log.info("Those test users are not present in production");
 	}
+	
+	private void removeUser(final String mail)
+	{
+		if (!userService.existByMail(mail))
+		{return;}
+		userService.deleteUserByMail(mail);
+	}
+	
 	
 	private void initUser(String mail, String pwd, List<EAccountRole> roles, EAccountStatus status)
 	{
