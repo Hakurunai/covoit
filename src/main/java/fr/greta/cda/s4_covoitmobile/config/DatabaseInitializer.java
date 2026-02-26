@@ -2,11 +2,9 @@ package fr.greta.cda.s4_covoitmobile.config;
 
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
-import fr.greta.cda.s4_covoitmobile.models.AccountRole;
-import fr.greta.cda.s4_covoitmobile.models.AccountStatus;
-import fr.greta.cda.s4_covoitmobile.repositories.AccountRoleRepository;
-import fr.greta.cda.s4_covoitmobile.repositories.AccountStatusRepository;
-import fr.greta.cda.s4_covoitmobile.repositories.UserRepository;
+import fr.greta.cda.s4_covoitmobile.exceptions.AlreadyExistException;
+import fr.greta.cda.s4_covoitmobile.services.AccountRoleService;
+import fr.greta.cda.s4_covoitmobile.services.AccountStatusService;
 import fr.greta.cda.s4_covoitmobile.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,11 +20,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DatabaseInitializer implements CommandLineRunner
 {
-	private final AccountRoleRepository roleRepo;
-	private final AccountStatusRepository statusRepo;
+	private final AccountRoleService accountRoleService;
+	private final AccountStatusService accountStatusService;
 	
-	private final UserRepository userRepository;
 	private final UserService userService;
+	
 	
 	private final Environment env;
 	@Value("${covoit.app.defaultAdminEmail}")
@@ -35,7 +32,6 @@ public class DatabaseInitializer implements CommandLineRunner
 	@Value("${covoit.app.defaultAdminPassword}")
 	private String defaultAdminPassword;
 	
-	@Transactional
 	@Override
 	public void run(final String... args)
 	{
@@ -56,30 +52,12 @@ public class DatabaseInitializer implements CommandLineRunner
 	
 	private void initRole()
 	{
-		for (EAccountRole roleEnum : EAccountRole.values())
-		{
-			if (roleRepo.findByName(roleEnum).isEmpty())
-			{
-				AccountRole role = new AccountRole();
-				role.setName(roleEnum);
-				roleRepo.save(role);
-				log.warn("Add new role in database : {}", roleEnum);
-			}
-		}
+		accountRoleService.initalizeRoles();
 	}
 	
 	private void initStatus()
 	{
-		for (EAccountStatus statusEnum : EAccountStatus.values())
-		{
-			if (statusRepo.findByName(statusEnum).isEmpty())
-			{
-				AccountStatus status = new AccountStatus();
-				status.setName(statusEnum);
-				statusRepo.save(status);
-				log.warn("Add new status in database : {}", statusEnum);
-			}
-		}
+		accountStatusService.initalizeStatus();
 	}
 	
 	private void initDefaultAdmin()
@@ -97,24 +75,35 @@ public class DatabaseInitializer implements CommandLineRunner
 		);
 		final String testUserPwd = "password123";
 		
-		log.info("Test users loading start.");
-		for (UserTestData user : testUsers)
+		log.info("Test users loading start (not included in prod)");
+		for (UserTestData data : testUsers)
 		{
-			initUser(user.mail(), testUserPwd, List.of(EAccountRole.ROLE_USER), user.status());
+			initUser(data.mail(), testUserPwd, List.of(EAccountRole.ROLE_USER), data.status());
+			
+			if (data.status() != EAccountStatus.PENDING)
+			{continue;}
+			
+			userService.ensureNoUserProfileForUser(data.mail());
 		}
 		log.info("Those test users are not present in production");
 	}
 	
 	private void initUser(String mail, String pwd, List<EAccountRole> roles, EAccountStatus status)
 	{
-		if (userRepository.findByEmail(mail).isEmpty())
-		{
-			userService.registerNewUser(mail, pwd, roles, status);
-			log.info("User created with identifiers : mail = {} | pwd = {}", mail, pwd);
-		}
-		else
+		if (userService.existByMail(mail))
 		{
 			log.info("User connexion identifiers : mail = {} | pwd = {}", mail, pwd);
+			return;
+		}
+		
+		try
+		{
+			userService.testRegisterUser(mail, pwd, roles, status);
+			log.info("User created with identifiers : mail = {} | pwd = {}", mail, pwd);
+		}
+		catch (AlreadyExistException ex)
+		{
+			log.warn("Init default database user fail : {}", ex.getMessage());
 		}
 	}
 }

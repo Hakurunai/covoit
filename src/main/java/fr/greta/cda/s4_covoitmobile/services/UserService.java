@@ -42,26 +42,25 @@ public class UserService
 			throw new AlreadyExistException("Email '" + mail + "' is already used");
 		}
 		
-		User newUser = new User();
-		newUser.setEmail(mail);
-		newUser.setPassword(passwordEncoder.encode(password));
-		
-		for (EAccountRole role : roles)
-		{
-			accountRoleRepository.findByName(role)
-				.ifPresentOrElse(
-					roleFound -> newUser.getRoles().add(roleFound),
-					() -> {throw new ResourceNotFoundException("Role", "role", role.toString());}
-				);
-		}
-		
-		accountStatusRepository.findByName(status)
-			.ifPresentOrElse(
-				newUser::setAccountStatus,
-				() -> {throw new ResourceNotFoundException("Status", "status", status.toString());}
-			);
-		
+		User newUser = generateNewUser(mail, password, roles, status);
 		return userRepository.save(newUser);
+	}
+	
+	public boolean existByMail(String mail)
+	{
+		return userRepository.existsByEmail(mail);
+	}
+	
+	@Transactional
+	public void ensureNoUserProfileForUser(final String mail)
+	{
+		User user = userRepository.findByEmail(mail)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "Mail", mail));
+		
+		if (user.getUserProfile() != null)
+		{
+			deleteProfile(user.getId());
+		}
 	}
 	
 	
@@ -109,5 +108,71 @@ public class UserService
 		return userRepository.findByIdWithProfile(userId)
 			.map(GetPersonByIdResponse::new)
 			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+	}
+	
+	/**
+	 * Currently similar to {@link UserService#registerNewUser(String, String, List, EAccountStatus)}
+	 * but this will shortcut any mail sending for example	 *
+	 *
+	 * @param mail     mail of the new user
+	 * @param password password of the new user
+	 * @param roles    roles given to the new user
+	 * @param status   status given to the new user
+	 */
+	@Transactional
+	public void testRegisterUser(String mail, String password, List<EAccountRole> roles, EAccountStatus status)
+	{
+		if (userRepository.existsByEmail(mail))
+		{
+			throw new AlreadyExistException("Email '" + mail + "' is already used");
+		}
+		
+		User newUser = generateNewUser(mail, password, roles, status);
+		userRepository.save(newUser);
+	}
+	
+	@Transactional
+	protected void deleteProfile(Long userId)
+	{
+		userRepository.findById(userId).ifPresent(user ->
+		{
+			if (user.getUserProfile() == null)
+			{return;}
+			
+			AccountStatus pendingStatus = accountStatusRepository.findByName(EAccountStatus.PENDING)
+				.orElseThrow(
+					() -> new ResourceNotFoundException("AccountStatus", "name", EAccountStatus.PENDING.name()));
+			
+			user.setUserProfile(null);
+			user.setAccountStatus(pendingStatus);
+			
+			userRepository.save(user);
+			userProfileRepository.deleteById(userId);
+		});
+	}
+	
+	private User generateNewUser(final String mail, final String password, final List<EAccountRole> roles,
+		final EAccountStatus status)
+	{
+		User newUser = new User();
+		newUser.setEmail(mail);
+		newUser.setPassword(passwordEncoder.encode(password));
+		
+		for (EAccountRole role : roles)
+		{
+			accountRoleRepository.findByName(role)
+				.ifPresentOrElse(
+					roleFound -> newUser.getRoles().add(roleFound),
+					() -> {throw new ResourceNotFoundException("Role", "role", role.toString());}
+				);
+		}
+		
+		accountStatusRepository.findByName(status)
+			.ifPresentOrElse(
+				newUser::setAccountStatus,
+				() -> {throw new ResourceNotFoundException("Status", "status", status.toString());}
+			);
+		
+		return newUser;
 	}
 }

@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface AccountStatusRepository extends JpaRepository<AccountStatus, Long>
 {
 	Optional<AccountStatus> findByName(EAccountStatus name);
+	
+	boolean existsByName(EAccountStatus name);
 }
