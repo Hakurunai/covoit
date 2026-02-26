@@ -8,6 +8,7 @@ import fr.greta.cda.s4_covoitmobile.dto.user.GetAllUserResponse;
 import fr.greta.cda.s4_covoitmobile.dto.user.GetPersonByIdResponse;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileResponse;
+import fr.greta.cda.s4_covoitmobile.dto.userprofile.UpdateProfileRequest;
 import fr.greta.cda.s4_covoitmobile.models.User;
 import fr.greta.cda.s4_covoitmobile.models.UserProfile;
 import fr.greta.cda.s4_covoitmobile.security.UserDetailsImpl;
@@ -18,6 +19,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -71,9 +73,6 @@ public class UserController
 				.firstName(newProfil.getFirstname())
 				.lastName(newProfil.getLastname())
 				.phone(newProfil.getPhone())
-				.roles(newProfil.getUser().getRoles().stream()
-					.map(role -> role.getName().name())
-					.toList())
 				.accountStatus(newProfil.getUser().getAccountStatus().getName().name())
 				.build()
 		);
@@ -93,17 +92,26 @@ public class UserController
 		return ResponseEntity.ok(userService.getUserDetail(id));
 	}
 	
-	@GetMapping("/me")
+	@PatchMapping("/persons/{id}")
 	@IsUser
-	public ResponseEntity<String> testAuth()
+	public ResponseEntity<CreateUserProfileResponse> updateProfile(
+		@PathVariable Long id,
+		@Valid @RequestBody UpdateProfileRequest request,
+		@AuthenticationPrincipal UserDetailsImpl currentUser)
 	{
-		return ResponseEntity.ok("If you see this message, you are authenticated and your role is enough to see it");
-	}
-	
-	@GetMapping("/meAdmin")
-	@IsAdmin
-	public ResponseEntity<String> testAuthAdmin()
-	{
-		return ResponseEntity.ok("If you see this message, you are authenticated and you are an admin");
+		if (!currentUser.canAccess(id))
+		{
+			throw new AuthorizationDeniedException("Your rights did not allow you to access this resource");
+		}
+		
+		UserProfile newProfil = userService.patchProfile(id, request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(
+			CreateUserProfileResponse.builder()
+				.firstName(newProfil.getFirstname())
+				.lastName(newProfil.getLastname())
+				.phone(newProfil.getPhone())
+				.accountStatus(newProfil.getUser().getAccountStatus().getName().name())
+				.build()
+		);
 	}
 }

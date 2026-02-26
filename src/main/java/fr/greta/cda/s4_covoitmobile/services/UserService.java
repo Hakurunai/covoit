@@ -5,6 +5,7 @@ import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
 import fr.greta.cda.s4_covoitmobile.dto.user.GetAllUserResponse;
 import fr.greta.cda.s4_covoitmobile.dto.user.GetPersonByIdResponse;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
+import fr.greta.cda.s4_covoitmobile.dto.userprofile.UpdateProfileRequest;
 import fr.greta.cda.s4_covoitmobile.exceptions.AlreadyExistException;
 import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
 import fr.greta.cda.s4_covoitmobile.models.AccountStatus;
@@ -108,6 +109,52 @@ public class UserService
 		return userRepository.findByIdWithProfile(userId)
 			.map(GetPersonByIdResponse::new)
 			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+	}
+	
+	@Transactional
+	public UserProfile patchProfile(Long targetId, UpdateProfileRequest dto)
+	{
+		UserProfile profile = userProfileRepository.findById(targetId)
+			.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", targetId));
+		
+		if (dto.getFirstname() != null)
+		{
+			profile.setFirstname(dto.getFirstname());
+		}
+		if (dto.getLastname() != null)
+		{
+			profile.setLastname(dto.getLastname());
+		}
+		if (dto.getPhone() != null)
+		{
+			profile.setPhone(dto.getPhone());
+		}
+		
+		return profile;
+	}
+	
+	@Transactional
+	public void deleteUserByMail(String mail)
+	{
+		User user = userRepository.findByEmail(mail)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "Mail", mail));
+		
+		deleteUserById(user.getId());
+	}
+	
+	@Transactional
+	public void deleteUserById(Long userId)
+	{
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+		
+		user.getRoles().clear();
+		if (user.getUserProfile() != null)
+		{
+			user.getUserProfile().setUser(null);
+		}
+		
+		userRepository.delete(user);
 	}
 	
 	/**

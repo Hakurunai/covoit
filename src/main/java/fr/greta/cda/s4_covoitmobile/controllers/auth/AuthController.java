@@ -61,7 +61,8 @@ public class AuthController
 		String status = userDetails.getUser().getAccountStatus().getName().name();
 		LocalDateTime createdAt = userDetails.getUser().getCreatedAt();
 		
-		return ResponseEntity.ok(new LoginResponse(jwt, refreshToken.getToken(), roles, status, createdAt));
+		return ResponseEntity.ok(
+			new LoginResponse(userDetails.getId(), jwt, refreshToken.getToken(), roles, status, createdAt));
 	}
 	
 	
