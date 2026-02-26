@@ -48,7 +48,7 @@ public class DatabaseInitializer implements CommandLineRunner
 		boolean isProduction = List.of(env.getActiveProfiles()).contains("prod");
 		if (!isProduction)
 		{
-			initDefaultUser();
+			initDefaultUsers();
 		}
 		
 		log.info("End database initialization");
@@ -63,7 +63,7 @@ public class DatabaseInitializer implements CommandLineRunner
 				AccountRole role = new AccountRole();
 				role.setName(roleEnum);
 				roleRepo.save(role);
-				log.info("Add new role in database : {}", roleEnum);
+				log.warn("Add new role in database : {}", roleEnum);
 			}
 		}
 	}
@@ -77,47 +77,46 @@ public class DatabaseInitializer implements CommandLineRunner
 				AccountStatus status = new AccountStatus();
 				status.setName(statusEnum);
 				statusRepo.save(status);
-				log.info("Add new status in database : {}", statusEnum);
+				log.warn("Add new status in database : {}", statusEnum);
 			}
 		}
 	}
 	
 	private void initDefaultAdmin()
 	{
-		if (userRepository.findByEmail(defaultAdminEmail).isEmpty())
-		{
-			userService.registerNewUser(
-				defaultAdminEmail,
-				defaultAdminPassword,
-				List.of(EAccountRole.ROLE_ADMIN),
-				EAccountStatus.ACTIVE
-			);
-			log.info("Default administrator account created : {}", defaultAdminEmail);
-		}
-		else
-		{
-			log.info("Default administrator mail : {}", defaultAdminEmail);
-		}
+		log.warn("Default administrator is loaded, look on next line to know his identifiers");
+		initUser(defaultAdminEmail, defaultAdminPassword, List.of(EAccountRole.ROLE_ADMIN), EAccountStatus.ACTIVE);
 	}
 	
-	private void initDefaultUser()
+	private void initDefaultUsers()
 	{
-		final String testEmail = "user@test.fr";
-		final String testPwd = "password123";
-		if (userRepository.findByEmail(testEmail).isEmpty())
+		List<UserTestData> testUsers = List.of(
+			new UserTestData("user@test.fr", EAccountStatus.ACTIVE),
+			new UserTestData("pendingUser@test.fr", EAccountStatus.PENDING),
+			new UserTestData("suspendedUser@test.fr", EAccountStatus.SUSPENDED)
+		);
+		final String testUserPwd = "password123";
+		
+		log.info("Test users loading start.");
+		for (UserTestData user : testUsers)
 		{
-			userService.registerNewUser(
-				testEmail,
-				testPwd,
-				List.of(EAccountRole.ROLE_USER),
-				EAccountStatus.ACTIVE
-			);
-			log.info("Test user created with identifiers : mail = {} | pwd = {}", testEmail, testPwd);
+			initUser(user.mail(), testUserPwd, List.of(EAccountRole.ROLE_USER), user.status());
+		}
+		log.info("Those test users are not present in production");
+	}
+	
+	private void initUser(String mail, String pwd, List<EAccountRole> roles, EAccountStatus status)
+	{
+		if (userRepository.findByEmail(mail).isEmpty())
+		{
+			userService.registerNewUser(mail, pwd, roles, status);
+			log.info("User created with identifiers : mail = {} | pwd = {}", mail, pwd);
 		}
 		else
 		{
-			log.info("Test user connexion identifiers : mail = {} | pwd = {}", testEmail, testPwd);
+			log.info("User connexion identifiers : mail = {} | pwd = {}", mail, pwd);
 		}
-		log.info("This user is not present in production");
 	}
 }
+
+record UserTestData(String mail, EAccountStatus status) {}
