@@ -53,19 +53,6 @@ public class UserService
 	}
 	
 	@Transactional
-	public void ensureNoUserProfileForUser(final String mail)
-	{
-		User user = userRepository.findByEmail(mail)
-			.orElseThrow(() -> new ResourceNotFoundException("User", "Mail", mail));
-		
-		if (user.getUserProfile() != null)
-		{
-			deleteProfile(user.getId());
-		}
-	}
-	
-	
-	@Transactional
 	public UserProfile completeProfile(Long targetId, UserDetailsImpl currentUser, CreateUserProfileRequest dto)
 	{
 		if (targetId != null && !currentUser.canAccess(targetId))

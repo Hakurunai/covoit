@@ -78,11 +78,8 @@ public class DatabaseInitializer implements CommandLineRunner
 		log.info("Test users loading start (not included in prod)");
 		for (UserTestData data : testUsers)
 		{
+			removeUser(data.mail());
 			initUser(data.mail(), testUserPwd, List.of(EAccountRole.ROLE_USER), data.status());
-			if (data.status() == EAccountStatus.PENDING)
-			{
-				userService.ensureNoUserProfileForUser(data.mail());
-			}
 		}
 		
 		removeUser("userNonValid@mail.fr");
