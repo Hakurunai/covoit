@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.Instant;
 
@@ -18,6 +19,7 @@ public class RefreshToken {
 	
 	@OneToOne
 	@JoinColumn(name = "user_id", referencedColumnName = "id")
+	@ToString.Exclude
 	private User user;
 	
 	@Column(nullable = false, unique = true, length = 64)

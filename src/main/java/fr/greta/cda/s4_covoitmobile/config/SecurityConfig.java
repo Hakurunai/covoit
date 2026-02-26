@@ -60,7 +60,7 @@ public class SecurityConfig
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(
 				auth -> auth
-					.requestMatchers("/register", "/login", "/api/auth/refreshtoken").permitAll()
+					.requestMatchers("/register", "/login", "/refreshtoken").permitAll()
 					.requestMatchers("/person", "/logout").authenticated()
 					.anyRequest().hasAuthority("ROLE_USER_VALIDATED")
 			)
