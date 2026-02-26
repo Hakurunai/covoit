@@ -1,8 +1,10 @@
 package fr.greta.cda.s4_covoitmobile.security;
 
+import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
 import fr.greta.cda.s4_covoitmobile.models.User;
 import fr.greta.cda.s4_covoitmobile.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,6 +23,11 @@ public class UserDetailServiceImpl implements UserDetailsService
 	{
 		User user = userRepository.findByEmail(email)
 			.orElseThrow(() -> new UsernameNotFoundException("User not found with login : " + email));
+		
+		if (EAccountStatus.DELETED.equals(user.getAccountStatus().getName()))
+		{
+			throw new BadCredentialsException("User deleted : request unauthorized");
+		}
 		
 		return new UserDetailsImpl(user);
 	}

@@ -4,6 +4,7 @@ import fr.greta.cda.s4_covoitmobile.dto.ErrorMessageResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,13 +43,28 @@ public class GlobalExceptionHandler
 		return buildError(HttpStatus.FORBIDDEN, "Your rights does not allow you the access of this resource");
 	}
 	
-	@ExceptionHandler(BadCredentialsException.class)
+	
+	@ExceptionHandler(
+		{
+			BadCredentialsException.class,
+			InternalAuthenticationServiceException.class
+		})
 	@ResponseStatus(HttpStatus.UNAUTHORIZED)
 	public ErrorMessageResponse handleBadCredentials(BadCredentialsException ex)
 	{
-		log.info("BadCredentialsException : {}", ex.getMessage());
+		log.info("Login exception : {}", ex.getMessage());
 		return buildError(HttpStatus.UNAUTHORIZED, "Id or password incorrect");
 	}
+	
+	
+	@ExceptionHandler(AccountAlreadyAnonymizedException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErrorMessageResponse handleAccountAlreadyAnonymizedException(AccountAlreadyAnonymizedException ex)
+	{
+		log.info("AccountAlreadyAnonymizedException : {}", ex.getMessage());
+		return buildError(HttpStatus.CONFLICT, ex.getMessage());
+	}
+	
 	
 	@ExceptionHandler(TokenRefreshException.class)
 	@ResponseStatus(HttpStatus.FORBIDDEN)

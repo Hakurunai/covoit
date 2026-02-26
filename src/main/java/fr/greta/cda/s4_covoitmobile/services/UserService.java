@@ -6,6 +6,7 @@ import fr.greta.cda.s4_covoitmobile.dto.user.GetAllUserResponse;
 import fr.greta.cda.s4_covoitmobile.dto.user.GetPersonByIdResponse;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.UpdateProfileRequest;
+import fr.greta.cda.s4_covoitmobile.exceptions.AccountAlreadyAnonymizedException;
 import fr.greta.cda.s4_covoitmobile.exceptions.AlreadyExistException;
 import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
 import fr.greta.cda.s4_covoitmobile.models.AccountStatus;
@@ -23,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -118,6 +120,31 @@ public class UserService
 		}
 		
 		return profile;
+	}
+	
+	@Transactional
+	public void anonymizeUser(Long userId)
+	{
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+		
+		if (EAccountStatus.DELETED.equals(user.getAccountStatus().getName()))
+		{
+			throw new AccountAlreadyAnonymizedException("Account " + userId + " has already been anonymized");
+		}
+		
+		AccountStatus deletedStatus = accountStatusRepository.findByName(EAccountStatus.DELETED).orElseThrow(
+			() -> new ResourceNotFoundException("Deleted status", "AccountStatusRepository",
+				EAccountStatus.DELETED.name())
+		);
+		user.setAccountStatus(deletedStatus);
+		user.setEmail("deleted_" + userId + "@covoit.internal");
+		user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+		
+		if (user.getUserProfile() != null)
+		{
+			user.setUserProfile(null);
+		}
 	}
 	
 	@Transactional

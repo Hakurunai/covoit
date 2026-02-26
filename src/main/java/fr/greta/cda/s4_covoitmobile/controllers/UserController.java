@@ -99,10 +99,7 @@ public class UserController
 		@Valid @RequestBody UpdateProfileRequest request,
 		@AuthenticationPrincipal UserDetailsImpl currentUser)
 	{
-		if (!currentUser.canAccess(id))
-		{
-			throw new AuthorizationDeniedException("Your rights did not allow you to access this resource");
-		}
+		checkAccessRightsOnId(currentUser, id);
 		
 		UserProfile newProfil = userService.patchProfile(id, request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -113,5 +110,44 @@ public class UserController
 				.accountStatus(newProfil.getUser().getAccountStatus().getName().name())
 				.build()
 		);
+	}
+	
+	@PatchMapping("/persons/deleteaccount{id}")
+	@IsUser
+	public ResponseEntity<CreateUserProfileResponse> deleteProfile(
+		@PathVariable Long id,
+		@Valid @RequestBody UpdateProfileRequest request,
+		@AuthenticationPrincipal UserDetailsImpl currentUser)
+	{
+		checkAccessRightsOnId(currentUser, id);
+		
+		UserProfile newProfil = userService.patchProfile(id, request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(
+			CreateUserProfileResponse.builder()
+				.firstName(newProfil.getFirstname())
+				.lastName(newProfil.getLastname())
+				.phone(newProfil.getPhone())
+				.accountStatus(newProfil.getUser().getAccountStatus().getName().name())
+				.build()
+		);
+	}
+	
+	@DeleteMapping("/persons/{id}")
+	@IsUser
+	public ResponseEntity<Void> anonymizeUser(@PathVariable Long id,
+		@AuthenticationPrincipal UserDetailsImpl currentUser)
+	{
+		checkAccessRightsOnId(currentUser, id);
+		
+		userService.anonymizeUser(id);
+		return ResponseEntity.noContent().build();
+	}
+	
+	private void checkAccessRightsOnId(UserDetailsImpl userDetails, Long targetedId)
+	{
+		if (!userDetails.canAccess(targetedId))
+		{
+			throw new AuthorizationDeniedException("Your rights did not allow you to access this resource");
+		}
 	}
 }

@@ -8,6 +8,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class GetPersonByIdResponse
 {
+	private String id;
 	private String email;
 	private String firstname;
 	private String lastname;
@@ -16,6 +17,7 @@ public class GetPersonByIdResponse
 	public GetPersonByIdResponse(User user)
 	{
 		this(
+			user.getId().toString(),
 			user.getEmail(),
 			user.getUserProfile() != null ? user.getUserProfile().getFirstname() : null,
 			user.getUserProfile() != null ? user.getUserProfile().getLastname() : null,

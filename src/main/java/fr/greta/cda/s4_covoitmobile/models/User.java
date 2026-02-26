@@ -29,7 +29,7 @@ public class User extends TimeStampedEntity
 	@NotBlank
 	private String password;
 	
-	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	@PrimaryKeyJoinColumn
 	@EqualsAndHashCode.Exclude
 	private UserProfile userProfile;

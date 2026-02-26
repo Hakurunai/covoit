@@ -70,8 +70,9 @@ public class DatabaseInitializer implements CommandLineRunner
 	{
 		List<UserTestData> testUsers = List.of(
 			new UserTestData("user@test.fr", EAccountStatus.ACTIVE),
+			new UserTestData("userToDeleteByAdmin@test.fr", EAccountStatus.ACTIVE),
 			new UserTestData("pendingUser@test.fr", EAccountStatus.PENDING),
-			new UserTestData("suspendedUser@test.fr", EAccountStatus.SUSPENDED)
+			new UserTestData("deletedUser@test.fr", EAccountStatus.DELETED)
 		);
 		final String testUserPwd = "password123";
 		
