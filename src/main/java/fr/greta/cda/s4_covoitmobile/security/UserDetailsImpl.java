@@ -80,4 +80,9 @@ public class UserDetailsImpl implements UserDetails
 		return getAuthorities().stream()
 			.anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"));
 	}
+	
+	public boolean canAccess(Long targetId)
+	{
+		return this.isAdmin() || Objects.equals(this.getId(), targetId);
+	}
 }

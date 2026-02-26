@@ -14,8 +14,10 @@ import fr.greta.cda.s4_covoitmobile.repositories.AccountRoleRepository;
 import fr.greta.cda.s4_covoitmobile.repositories.AccountStatusRepository;
 import fr.greta.cda.s4_covoitmobile.repositories.UserProfileRepository;
 import fr.greta.cda.s4_covoitmobile.repositories.UserRepository;
+import fr.greta.cda.s4_covoitmobile.security.UserDetailsImpl;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -64,20 +66,21 @@ public class UserService
 	
 	
 	@Transactional
-	public UserProfile completeProfile(Long userId, CreateUserProfileRequest dto)
+	public UserProfile completeProfile(Long targetId, UserDetailsImpl currentUser, CreateUserProfileRequest dto)
 	{
-		if (userId == null)
+		if (targetId != null && !currentUser.canAccess(targetId))
 		{
-			throw new IllegalArgumentException("User ID must not be null");
+			throw new AuthorizationDeniedException("Only an admin is able to create the profile of another user");
 		}
 		
-		if (userProfileRepository.existsById(userId))
+		Long finalTargetId = (targetId != null) ? targetId : currentUser.getId();
+		if (userProfileRepository.existsById(finalTargetId))
 		{
-			throw new AlreadyExistException("Profile for user ID " + userId + " already exists");
+			throw new AlreadyExistException("Profile for user ID " + finalTargetId + " already exists");
 		}
 		
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+		User user = userRepository.findById(finalTargetId)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "id", finalTargetId));
 		
 		UserProfile profile = new UserProfile();
 		profile.setUser(user);

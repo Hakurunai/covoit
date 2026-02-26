@@ -9,6 +9,7 @@ import fr.greta.cda.s4_covoitmobile.dto.user.GetPersonByIdResponse;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileResponse;
 import fr.greta.cda.s4_covoitmobile.models.User;
+import fr.greta.cda.s4_covoitmobile.models.UserProfile;
 import fr.greta.cda.s4_covoitmobile.security.UserDetailsImpl;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsAdmin;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsUser;
@@ -47,13 +48,15 @@ public class UserController
 					.map(roleEntity -> roleEntity.getName().name())
 					.toList())
 				.status(newUser.getAccountStatus().getName().name())
+				.email(newUser.getEmail())
 				.build()
 		);
 	}
 	
 	@PostMapping("/person")
 	@IsUser
-	public ResponseEntity<CreateUserProfileResponse> setupProfile(@Valid @RequestBody CreateUserProfileRequest request,
+	public ResponseEntity<CreateUserProfileResponse> setupProfile(
+		@Valid @RequestBody CreateUserProfileRequest request,
 		@RequestParam(required = false) Long targetUserId,
 		@AuthenticationPrincipal UserDetailsImpl currentUser)
 	{
@@ -62,28 +65,18 @@ public class UserController
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid session or user unknown");
 		}
 		
-		Long finalUserId;
-		
-		//ensure user is an admin
-		if (targetUserId != null)
-		{
-			if (currentUser.isAdmin())
-			{
-				finalUserId = targetUserId;
-			}
-			else
-			{
-				throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-					"Only an admin is able to create the profil of another user");
-			}
-		}
-		else
-		{
-			finalUserId = currentUser.getId();
-		}
-		
-		userService.completeProfile(finalUserId, request);
-		return new ResponseEntity<>(new CreateUserProfileResponse("Your account is now activated"), HttpStatus.CREATED);
+		UserProfile newProfil = userService.completeProfile(targetUserId, currentUser, request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(
+			CreateUserProfileResponse.builder()
+				.firstName(newProfil.getFirstname())
+				.lastName(newProfil.getLastname())
+				.phone(newProfil.getPhone())
+				.roles(newProfil.getUser().getRoles().stream()
+					.map(role -> role.getName().name())
+					.toList())
+				.accountStatus(newProfil.getUser().getAccountStatus().getName().name())
+				.build()
+		);
 	}
 	
 	@GetMapping("/persons")
