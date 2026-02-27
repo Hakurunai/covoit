@@ -2,8 +2,6 @@ package fr.greta.cda.s4_covoitmobile.services;
 
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
-import fr.greta.cda.s4_covoitmobile.dto.user.GetAllUserResponse;
-import fr.greta.cda.s4_covoitmobile.dto.user.GetPersonByIdResponse;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.dto.userprofile.UpdateProfileRequest;
 import fr.greta.cda.s4_covoitmobile.exceptions.AccountAlreadyAnonymizedException;
@@ -86,17 +84,14 @@ public class UserService
 	}
 	
 	
-	public List<GetAllUserResponse> getAllUsersData()
+	public List<User> getAllUsersData()
 	{
-		return userRepository.findAllWithProfileAndStatusAndRoles().stream()
-			.map(GetAllUserResponse::new)
-			.toList();
+		return userRepository.findAllWithProfileAndStatusAndRoles();
 	}
 	
-	public GetPersonByIdResponse getUserDetail(Long userId)
+	public User getUserDetail(Long userId)
 	{
 		return userRepository.findByIdWithProfile(userId)
-			.map(GetPersonByIdResponse::new)
 			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 	}
 	
@@ -192,25 +187,6 @@ public class UserService
 		userRepository.save(newUser);
 	}
 	
-	@Transactional
-	protected void deleteProfile(Long userId)
-	{
-		userRepository.findById(userId).ifPresent(user ->
-		{
-			if (user.getUserProfile() == null)
-			{return;}
-			
-			AccountStatus pendingStatus = accountStatusRepository.findByName(EAccountStatus.PENDING)
-				.orElseThrow(
-					() -> new ResourceNotFoundException("AccountStatus", "name", EAccountStatus.PENDING.name()));
-			
-			user.setUserProfile(null);
-			user.setAccountStatus(pendingStatus);
-			
-			userRepository.save(user);
-			userProfileRepository.deleteById(userId);
-		});
-	}
 	
 	private User generateNewUser(final String mail, final String password, final List<EAccountRole> roles,
 		final EAccountStatus status)

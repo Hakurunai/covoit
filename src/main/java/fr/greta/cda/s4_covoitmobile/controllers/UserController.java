@@ -16,7 +16,7 @@ import fr.greta.cda.s4_covoitmobile.security.annotations.IsAdmin;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsUser;
 import fr.greta.cda.s4_covoitmobile.services.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -27,12 +27,10 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 public class UserController
 {
 	private final UserService userService;
-	
-	@Autowired
-	public UserController(final UserService userService) {this.userService = userService;}
 	
 	@PostMapping("/register")
 	public ResponseEntity<CreateUserResponse> createUser(@Valid @RequestBody CreateUserRequest request)
@@ -82,14 +80,22 @@ public class UserController
 	@IsAdmin
 	public ResponseEntity<List<GetAllUserResponse>> getAllUser()
 	{
-		return ResponseEntity.ok(userService.getAllUsersData());
+		List<User> allUsers = userService.getAllUsersData();
+		
+		var response = allUsers.stream()
+			.map(GetAllUserResponse::new)
+			.toList();
+		return ResponseEntity.ok(response);
 	}
 	
 	@GetMapping("/persons/{id}")
 	@IsUser
 	public ResponseEntity<GetPersonByIdResponse> getPersonById(@PathVariable Long id)
 	{
-		return ResponseEntity.ok(userService.getUserDetail(id));
+		User userData = userService.getUserDetail(id);
+		
+		var response = new GetPersonByIdResponse(userData);
+		return ResponseEntity.ok(response);
 	}
 	
 	@PatchMapping("/persons/{id}")

@@ -1,4 +1,4 @@
-package fr.greta.cda.s4_covoitmobile.controllers.auth;
+package fr.greta.cda.s4_covoitmobile.controllers;
 
 import fr.greta.cda.s4_covoitmobile.dto.auth.LoginRequest;
 import fr.greta.cda.s4_covoitmobile.dto.auth.LoginResponse;
