@@ -1,6 +1,7 @@
 package fr.greta.cda.s4_covoitmobile.services;
 
 import fr.greta.cda.s4_covoitmobile.exceptions.AlreadyExistException;
+import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
 import fr.greta.cda.s4_covoitmobile.models.CarBrand;
 import fr.greta.cda.s4_covoitmobile.repositories.CarBrandRepository;
 import jakarta.transaction.Transactional;
@@ -31,5 +32,29 @@ public class CarService
 	public List<CarBrand> getAllBrand()
 	{
 		return carBrandRepository.findAll();
+	}
+	
+	@Transactional
+	public CarBrand updateBrand(final Long id, String brandName)
+	{
+		CarBrand brand = carBrandRepository.findById(id)
+			.orElseThrow(() -> new ResourceNotFoundException("Brand", "Id", id));
+		
+		if (carBrandRepository.existsByName(brandName))
+		{
+			throw new AlreadyExistException("Brand name " + brandName + " is already taken");
+		}
+		
+		brand.setName(brandName);
+		return brand;
+	}
+	
+	@Transactional
+	public void deleteBrand(final Long id)
+	{
+		CarBrand brand = carBrandRepository.findById(id)
+			.orElseThrow(() -> new ResourceNotFoundException("Brand", "Id", id));
+		
+		carBrandRepository.delete(brand);
 	}
 }

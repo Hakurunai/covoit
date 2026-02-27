@@ -1,8 +1,6 @@
 package fr.greta.cda.s4_covoitmobile.controllers;
 
-import fr.greta.cda.s4_covoitmobile.dto.brand.CreateBrandRequest;
-import fr.greta.cda.s4_covoitmobile.dto.brand.CreateBrandResponse;
-import fr.greta.cda.s4_covoitmobile.dto.brand.GetBrandResponse;
+import fr.greta.cda.s4_covoitmobile.dto.brand.*;
 import fr.greta.cda.s4_covoitmobile.models.CarBrand;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsAdmin;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsUser;
@@ -28,7 +26,7 @@ public class CarBrandController
 	{
 		CarBrand newBrand = carService.createNewBrand(request.getBrandName());
 		
-		var response = new CreateBrandResponse( newBrand.getId(), newBrand.getName());
+		var response = new CreateBrandResponse(newBrand.getId(), newBrand.getName());
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 	
@@ -40,5 +38,26 @@ public class CarBrandController
 		
 		var response = allBrands.stream().map(GetBrandResponse::new).toList();
 		return ResponseEntity.ok(response);
+	}
+	
+	@PutMapping("/{id}")
+	@IsAdmin
+	public ResponseEntity<UpdateBrandResponse> updateBrand(
+		@PathVariable Long id,
+		@Valid @RequestBody UpdateBrandRequest request)
+	{
+		CarBrand newBrand = carService.updateBrand(id, request.getBrandName());
+		
+		var response = new UpdateBrandResponse(newBrand.getName());
+		return ResponseEntity.ok().body(response);
+	}
+	
+	@DeleteMapping("/{id}")
+	@IsAdmin
+	public ResponseEntity<Void> deleteBrand(@PathVariable Long id)
+	{
+		carService.deleteBrand(id);
+		
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 }
