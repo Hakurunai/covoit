@@ -118,26 +118,6 @@ public class UserController
 		);
 	}
 	
-	@PatchMapping("/persons/deleteaccount{id}")
-	@IsUser
-	public ResponseEntity<CreateUserProfileResponse> deleteProfile(
-		@PathVariable Long id,
-		@Valid @RequestBody UpdateProfileRequest request,
-		@AuthenticationPrincipal UserDetailsImpl currentUser)
-	{
-		checkAccessRightsOnId(currentUser, id);
-		
-		UserProfile newProfil = userService.patchProfile(id, request);
-		return ResponseEntity.status(HttpStatus.CREATED).body(
-			CreateUserProfileResponse.builder()
-				.firstName(newProfil.getFirstname())
-				.lastName(newProfil.getLastname())
-				.phone(newProfil.getPhone())
-				.accountStatus(newProfil.getUser().getAccountStatus().getName().name())
-				.build()
-		);
-	}
-	
 	@DeleteMapping("/persons/{id}")
 	@IsUser
 	public ResponseEntity<Void> anonymizeUser(@PathVariable Long id,
