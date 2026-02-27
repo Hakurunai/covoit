@@ -7,6 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class CreateBrandResponse
 {
-	private Long Id;
+	private Long id;
 	private String brandName;
 }
