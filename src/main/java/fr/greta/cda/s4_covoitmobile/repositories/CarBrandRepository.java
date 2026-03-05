@@ -9,6 +9,8 @@ import java.util.Optional;
 @Repository
 public interface CarBrandRepository extends JpaRepository<CarBrand, Long>
 {
+	void deleteByName(String name);
+	
 	boolean existsByName(String name);
 	
 	Optional<Object> findCarBrandById(Long id);

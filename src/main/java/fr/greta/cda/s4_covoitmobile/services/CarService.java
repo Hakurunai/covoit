@@ -57,4 +57,25 @@ public class CarService
 		
 		carBrandRepository.delete(brand);
 	}
+	
+	/**
+	 * If the brand did not exist, no exception will be thrown
+	 *
+	 * @param brandName the targeted brand to delete
+	 */
+	@Transactional
+	public void silentlyDeleteCarBrand(final String brandName)
+	{
+		carBrandRepository.deleteByName(brandName);
+	}
+	
+	public boolean isEmpty()
+	{
+		return carBrandRepository.count() == 0;
+	}
+	
+	public void saveAll(List<CarBrand> brandList)
+	{
+		carBrandRepository.saveAll(brandList);
+	}
 }

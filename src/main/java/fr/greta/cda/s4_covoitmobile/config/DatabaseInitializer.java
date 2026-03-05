@@ -3,8 +3,10 @@ package fr.greta.cda.s4_covoitmobile.config;
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
 import fr.greta.cda.s4_covoitmobile.exceptions.AlreadyExistException;
+import fr.greta.cda.s4_covoitmobile.models.CarBrand;
 import fr.greta.cda.s4_covoitmobile.services.AccountRoleService;
 import fr.greta.cda.s4_covoitmobile.services.AccountStatusService;
+import fr.greta.cda.s4_covoitmobile.services.CarService;
 import fr.greta.cda.s4_covoitmobile.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Component
@@ -24,7 +30,7 @@ public class DatabaseInitializer implements CommandLineRunner
 	private final AccountStatusService accountStatusService;
 	
 	private final UserService userService;
-	
+	private final CarService carService;
 	
 	private final Environment env;
 	@Value("${covoit.app.defaultAdminEmail}")
@@ -36,18 +42,48 @@ public class DatabaseInitializer implements CommandLineRunner
 	public void run(final String... args)
 	{
 		log.info("Start database initialization");
+		boolean isProduction = List.of(env.getActiveProfiles()).contains("prod");
 		
 		initRole();
 		initStatus();
 		initDefaultAdmin();
-		
-		boolean isProduction = List.of(env.getActiveProfiles()).contains("prod");
-		if (!isProduction)
-		{
-			initDefaultUsers();
-		}
+		initDefaultUsers(isProduction);
+		initCarBrand(isProduction);
 		
 		log.info("End database initialization");
+	}
+	
+	private void initCarBrand(boolean isAppInProd)
+	{
+		if (!isAppInProd)
+		{
+			carService.silentlyDeleteCarBrand("ANameUsedToTestTheAPI");
+			carService.silentlyDeleteCarBrand("UpdatedNameToTestTheAPI");
+		}
+		
+		if (carService.isEmpty())
+		{
+			log.info("Loading car brand from csv");
+			
+			
+			try (InputStream inputStream = getClass().getResourceAsStream("/data/car_brands.csv");
+				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)))
+			{
+				List<CarBrand> brands = reader.lines()
+					.map(String::trim)
+					.filter(line -> !line.isEmpty())
+					.distinct()
+					.map(CarBrand::new)
+					.toList();
+				
+				carService.saveAll(brands);
+				log.info("{} brand inserted with success", brands.size());
+			}
+			catch (Exception e)
+			{
+				log.error("Error while working on car_brands.csv : {}", e.getMessage());
+			}
+		}
 	}
 	
 	private void initRole()
@@ -66,8 +102,13 @@ public class DatabaseInitializer implements CommandLineRunner
 		initUser(defaultAdminEmail, defaultAdminPassword, List.of(EAccountRole.ROLE_ADMIN), EAccountStatus.ACTIVE);
 	}
 	
-	private void initDefaultUsers()
+	private void initDefaultUsers(boolean isAppInProd)
 	{
+		if (isAppInProd)
+		{
+			return;
+		}
+		
 		List<UserTestData> testUsers = List.of(
 			new UserTestData("user@test.fr", EAccountStatus.ACTIVE),
 			new UserTestData("userToDeleteByAdmin@test.fr", EAccountStatus.ACTIVE),
