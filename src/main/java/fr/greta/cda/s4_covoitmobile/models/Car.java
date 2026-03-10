@@ -35,7 +35,7 @@ public class Car
 	@Max(15)
 	private short nbSeats;
 	
-	@Column(nullable = false, unique = true, length = 20)
+	@Column(nullable = false, length = 20)
 	@NotBlank
 	@Size(max = 20)
 	private String model;

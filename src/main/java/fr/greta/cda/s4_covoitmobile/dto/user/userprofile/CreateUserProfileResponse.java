@@ -1,4 +1,4 @@
-package fr.greta.cda.s4_covoitmobile.dto.userprofile;
+package fr.greta.cda.s4_covoitmobile.dto.user.userprofile;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

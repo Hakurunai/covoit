@@ -15,6 +15,15 @@ public class UserProfile extends TimeStampedEntity
 	@Id
 	private Long id;
 	
+	@OneToOne
+	@MapsId //we use the id attribute of a User entity as our own id
+	@JoinColumn(name = "id")
+	@EqualsAndHashCode.Exclude
+	private User user;
+	
+	@OneToOne(mappedBy = "userProfile")
+	private Car car;
+	
 	@Column(nullable = false, length = 50)
 	@NotBlank
 	private String firstname;
@@ -26,10 +35,4 @@ public class UserProfile extends TimeStampedEntity
 	@Column(nullable = false, length = 20)
 	@NotBlank
 	private String phone;
-	
-	@OneToOne
-	@MapsId //we use the id attribute of a User entity as our own id
-	@JoinColumn(name = "id")
-	@EqualsAndHashCode.Exclude
-	private User user;
 }

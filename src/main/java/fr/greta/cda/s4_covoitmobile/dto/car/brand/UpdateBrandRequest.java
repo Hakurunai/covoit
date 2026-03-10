@@ -1,4 +1,4 @@
-package fr.greta.cda.s4_covoitmobile.dto.brand;
+package fr.greta.cda.s4_covoitmobile.dto.car.brand;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

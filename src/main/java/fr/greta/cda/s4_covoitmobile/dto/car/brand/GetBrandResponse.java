@@ -1,4 +1,4 @@
-package fr.greta.cda.s4_covoitmobile.dto.brand;
+package fr.greta.cda.s4_covoitmobile.dto.car.brand;
 
 import fr.greta.cda.s4_covoitmobile.models.CarBrand;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package fr.greta.cda.s4_covoitmobile.controllers;
 
-import fr.greta.cda.s4_covoitmobile.dto.brand.*;
+import fr.greta.cda.s4_covoitmobile.dto.car.brand.*;
 import fr.greta.cda.s4_covoitmobile.models.CarBrand;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsAdmin;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsUser;

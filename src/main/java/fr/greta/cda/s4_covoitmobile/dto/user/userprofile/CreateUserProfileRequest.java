@@ -1,4 +1,4 @@
-package fr.greta.cda.s4_covoitmobile.dto.userprofile;
+package fr.greta.cda.s4_covoitmobile.dto.user.userprofile;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

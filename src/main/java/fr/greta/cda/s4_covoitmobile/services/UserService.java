@@ -2,8 +2,8 @@ package fr.greta.cda.s4_covoitmobile.services;
 
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
-import fr.greta.cda.s4_covoitmobile.dto.userprofile.CreateUserProfileRequest;
-import fr.greta.cda.s4_covoitmobile.dto.userprofile.UpdateProfileRequest;
+import fr.greta.cda.s4_covoitmobile.dto.user.userprofile.CreateUserProfileRequest;
+import fr.greta.cda.s4_covoitmobile.dto.user.userprofile.UpdateProfileRequest;
 import fr.greta.cda.s4_covoitmobile.exceptions.AccountAlreadyAnonymizedException;
 import fr.greta.cda.s4_covoitmobile.exceptions.AlreadyExistException;
 import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
@@ -50,6 +50,13 @@ public class UserService
 	public boolean existByMail(String mail)
 	{
 		return userRepository.existsByEmail(mail);
+	}
+	
+	
+	public UserProfile getProfile(Long targetedId)
+	{
+		return userProfileRepository.findById(targetedId)
+			.orElseThrow(() -> new ResourceNotFoundException("Profile", "Id", targetedId));
 	}
 	
 	@Transactional
