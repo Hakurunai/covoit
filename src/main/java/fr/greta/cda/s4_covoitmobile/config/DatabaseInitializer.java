@@ -2,8 +2,10 @@ package fr.greta.cda.s4_covoitmobile.config;
 
 import fr.greta.cda.s4_covoitmobile.data.EAccountRole;
 import fr.greta.cda.s4_covoitmobile.data.EAccountStatus;
+import fr.greta.cda.s4_covoitmobile.dto.user.userprofile.CreateUserProfileRequest;
 import fr.greta.cda.s4_covoitmobile.exceptions.AlreadyExistException;
 import fr.greta.cda.s4_covoitmobile.models.CarBrand;
+import fr.greta.cda.s4_covoitmobile.models.User;
 import fr.greta.cda.s4_covoitmobile.services.AccountRoleService;
 import fr.greta.cda.s4_covoitmobile.services.AccountStatusService;
 import fr.greta.cda.s4_covoitmobile.services.CarService;
@@ -46,9 +48,9 @@ public class DatabaseInitializer implements CommandLineRunner
 		
 		initRole();
 		initStatus();
+		initCarBrand(isProduction);
 		initDefaultAdmin();
 		initDefaultUsers(isProduction);
-		initCarBrand(isProduction);
 		
 		log.info("End database initialization");
 	}
@@ -108,9 +110,11 @@ public class DatabaseInitializer implements CommandLineRunner
 		{
 			return;
 		}
+		final String DEFAULT_USER_MAIL = "user@test.fr";
+		
 		
 		List<UserTestData> testUsers = List.of(
-			new UserTestData("user@test.fr", EAccountStatus.ACTIVE),
+			new UserTestData(DEFAULT_USER_MAIL, EAccountStatus.ACTIVE),
 			new UserTestData("userToDeleteByAdmin@test.fr", EAccountStatus.ACTIVE),
 			new UserTestData("pendingUser@test.fr", EAccountStatus.PENDING),
 			new UserTestData("deletedUser@test.fr", EAccountStatus.DELETED)
@@ -125,7 +129,23 @@ public class DatabaseInitializer implements CommandLineRunner
 		}
 		
 		removeUser("userNonValid@mail.fr");
+		
+		initDefaultProfile(DEFAULT_USER_MAIL);
+		
 		log.info("Those test users are not present in production");
+	}
+	
+	private void initDefaultProfile(String profileMail)
+	{
+		User defaultUser = userService.getUserByMail(profileMail);
+		CreateUserProfileRequest data = new CreateUserProfileRequest();
+		data.setFirstname("John");
+		data.setLastname("Doe");
+		data.setPhone("0607080910");
+		
+		userService.createNewProfile(defaultUser.getId(), data);
+		
+		log.info("Default user profile inserted");
 	}
 	
 	private void removeUser(final String mail)

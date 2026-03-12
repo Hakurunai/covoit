@@ -73,8 +73,14 @@ public class UserService
 			throw new AlreadyExistException("Profile for user ID " + finalTargetId + " already exists");
 		}
 		
-		User user = userRepository.findById(finalTargetId)
-			.orElseThrow(() -> new ResourceNotFoundException("User", "id", finalTargetId));
+		return createNewProfile(finalTargetId, dto);
+	}
+	
+	@Transactional
+	public UserProfile createNewProfile(Long targetId, CreateUserProfileRequest dto)
+	{
+		User user = userRepository.findById(targetId)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "id", targetId));
 		
 		UserProfile profile = new UserProfile();
 		profile.setUser(user);
@@ -94,6 +100,12 @@ public class UserService
 	public List<User> getAllUsersData()
 	{
 		return userRepository.findAllWithProfileAndStatusAndRoles();
+	}
+	
+	public User getUserByMail(String mail)
+	{
+		return userRepository.findByEmail(mail)
+			.orElseThrow(() -> new ResourceNotFoundException("User", "Mail", mail));
 	}
 	
 	public User getUserDetail(Long userId)
