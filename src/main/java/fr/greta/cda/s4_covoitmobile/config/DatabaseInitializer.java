@@ -102,6 +102,20 @@ public class DatabaseInitializer implements CommandLineRunner
 	{
 		log.warn("Default administrator is loaded, look on next line to know his identifiers");
 		initUser(defaultAdminEmail, defaultAdminPassword, List.of(EAccountRole.ROLE_ADMIN), EAccountStatus.ACTIVE);
+		initProfile(defaultAdminEmail, "Admin Firstname", "Admin Lastname", "0000000000");
+		initAdminCar(defaultAdminEmail);
+	}
+	
+	private void initAdminCar(String profileMail)
+	{
+		User user = userService.getUserByMail(profileMail);
+		
+		if (!carService.getCarFromUserProfile(user.getId()).isEmpty())
+		{return;}
+		
+		final Long brandId = 3L;
+		final short nbSeats = 8;
+		carService.saveCarInternal(brandId, user.getId(), "Admin model", "WWZZWWZZWW", nbSeats);
 	}
 	
 	private void initDefaultUsers(boolean isAppInProd)
@@ -135,16 +149,26 @@ public class DatabaseInitializer implements CommandLineRunner
 		log.info("Those test users are not present in production");
 	}
 	
+	
+	private void initProfile(String profileMail, String firstname, String lastName, String phoneNumber)
+	{
+		User user = userService.getUserByMail(profileMail);
+		
+		if (userService.isProfileExisting(user.getId()))
+		{return;}
+		
+		CreateUserProfileRequest data = new CreateUserProfileRequest();
+		data.setFirstname(firstname);
+		data.setLastname(lastName);
+		data.setPhone(phoneNumber);
+		
+		userService.createNewProfile(user.getId(), data);
+	}
+	
+	
 	private void initDefaultProfile(String profileMail)
 	{
-		User defaultUser = userService.getUserByMail(profileMail);
-		CreateUserProfileRequest data = new CreateUserProfileRequest();
-		data.setFirstname("John");
-		data.setLastname("Doe");
-		data.setPhone("0607080910");
-		
-		userService.createNewProfile(defaultUser.getId(), data);
-		
+		initProfile(profileMail, "John", "Doe", "0607080910");
 		log.info("Default user profile inserted");
 	}
 	

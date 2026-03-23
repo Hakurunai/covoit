@@ -21,7 +21,7 @@ public class UserProfile extends TimeStampedEntity
 	@EqualsAndHashCode.Exclude
 	private User user;
 	
-	@OneToOne(mappedBy = "userProfile")
+	@OneToOne(mappedBy = "userProfile", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Car car;
 	
 	@Column(nullable = false, length = 50)

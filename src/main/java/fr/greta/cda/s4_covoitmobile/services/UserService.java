@@ -52,6 +52,10 @@ public class UserService
 		return userRepository.existsByEmail(mail);
 	}
 	
+	public boolean isProfileExisting(Long targetedId)
+	{
+		return userProfileRepository.existsById(targetedId);
+	}
 	
 	public UserProfile getProfile(Long targetedId)
 	{
@@ -177,10 +181,6 @@ public class UserService
 			.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 		
 		user.getRoles().clear();
-		if (user.getUserProfile() != null)
-		{
-			user.getUserProfile().setUser(null);
-		}
 		
 		userRepository.delete(user);
 	}

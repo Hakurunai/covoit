@@ -10,11 +10,10 @@ import fr.greta.cda.s4_covoitmobile.repositories.CarRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -25,14 +24,16 @@ public class CarService
 	private final CarBrandRepository carBrandRepository;
 	private final UserService userService;
 	
-	@PreAuthorize("principal.canAccess(#userId)")
 	@Transactional
-	public Car createCar(Long carBrandId, Long userId, String model, String plate, short nbSeats)
+	public Car createCar(Long carBrandId, String model, String plate, short nbSeats)
 	{
-		//TODO : Delete this test
-		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		System.out.println("Type du principal : " + principal.getClass().getName());
-		
+		Long userId = SecurityUtils.getAuthenticatedUser().getId();
+		return saveCarInternal(carBrandId, userId, model, plate, nbSeats);
+	}
+	
+	@Transactional
+	public Car saveCarInternal(Long carBrandId, Long userId, String model, String plate, short nbSeats)
+	{
 		if (carRepository.existsByLicensePlate(plate))
 		{throw new AlreadyExistException("The license plate " + plate + " is already registered");}
 		
@@ -51,6 +52,59 @@ public class CarService
 		profile.setCar(car);
 		
 		return carRepository.save(car);
+	}
+	
+	public Optional<Car> getCarFromUserProfile(Long userProfileId)
+	{
+		return carRepository.findByUserProfileId(userProfileId);
+	}
+	
+	public Optional<Car> getCarData(Long carId)
+	{
+		return carRepository.findById(carId);
+	}
+	
+	
+	@Transactional
+	public Car updateCar(Long carId, Long carBrandId, String model, String plate, short nbSeats)
+	{
+		Car car = carRepository.findById(carId)
+			.orElseThrow(() -> new ResourceNotFoundException("Car", "Id", carId));
+		
+		if (!car.getLicensePlate().equals(plate) && carRepository.existsByLicensePlate(plate))
+		{
+			throw new AlreadyExistException("The license plate " + plate + " is already registered by another user");
+		}
+		
+		SecurityUtils.checkOwnership(car.getUserProfile().getId());
+		
+		CarBrand brand = getBrand(carBrandId);
+		
+		car.setModel(model);
+		car.setLicensePlate(plate);
+		car.setNbSeats(nbSeats);
+		car.setBrand(brand);
+		
+		return carRepository.save(car);
+	}
+	
+	@Transactional
+	public void deleteCarById(final Long id)
+	{
+		Optional<Car> targetedCar = getCarData(id);
+		if (targetedCar.isEmpty())
+		{
+			throw new ResourceNotFoundException("Car", "Id", id);
+		}
+		Car car = targetedCar.get();
+		UserProfile ownerProfile = car.getUserProfile();
+		if (ownerProfile != null)
+		{
+			SecurityUtils.checkOwnership(ownerProfile.getId());
+			ownerProfile.setCar(null);
+		}
+		
+		carRepository.delete(car);
 	}
 	
 	@Transactional
