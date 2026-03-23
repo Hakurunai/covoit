@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -50,4 +52,7 @@ public class User extends TimeStampedEntity
 	@EqualsAndHashCode.Exclude
 	@ToString.Exclude
 	private RefreshToken refreshToken;
+	
+	@OneToMany(mappedBy = "idUser")
+	private List<PassengerReservation> myReservations = new ArrayList<>();
 }
