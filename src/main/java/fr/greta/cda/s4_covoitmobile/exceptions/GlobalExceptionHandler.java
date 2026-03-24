@@ -19,6 +19,14 @@ import java.util.List;
 @Slf4j
 public class GlobalExceptionHandler
 {
+	@ExceptionHandler(RideAvailablePlaceInvalidException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErrorMessageResponse handleResourceNotFound(RideAvailablePlaceInvalidException ex)
+	{
+		log.warn("Issue during ride creation : {}}", ex.getMessage());
+		return buildError(HttpStatus.CONFLICT, ex.getMessage());
+	}
+	
 	@ExceptionHandler(ResourceNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ErrorMessageResponse handleResourceNotFound(ResourceNotFoundException ex)

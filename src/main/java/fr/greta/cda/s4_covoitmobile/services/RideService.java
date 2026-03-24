@@ -1,6 +1,8 @@
 package fr.greta.cda.s4_covoitmobile.services;
 
 import fr.greta.cda.s4_covoitmobile.dto.trip.CreateTripRequest;
+import fr.greta.cda.s4_covoitmobile.exceptions.RideAvailablePlaceInvalidException;
+import fr.greta.cda.s4_covoitmobile.models.Car;
 import fr.greta.cda.s4_covoitmobile.models.City;
 import fr.greta.cda.s4_covoitmobile.models.Ride;
 import fr.greta.cda.s4_covoitmobile.models.User;
@@ -19,17 +21,22 @@ public class RideService
 	private final RideRepository rideRepository;
 	private final PassengerReservationRepository reservationRepository;
 	private final CityService cityService;
+	
 	private final UserService userService;
+	private final CarService carService;
+	
 	
 	@Transactional
 	public Ride createRide(CreateTripRequest requestData)
 	{
 		SecurityUtils.checkOwnership(requestData.getDriverId());
+		
 		User driver = userService.getUserDetail(requestData.getDriverId());
+		
+		checkVehicleCompatibilityWithRequestedRide(driver, requestData.getAvailablePlaces());
 		
 		City departCity = cityService.getOrCreate(requestData.getDepartureCityName(), requestData.getDepartureZip());
 		City arrivalCity = cityService.getOrCreate(requestData.getArrivalCityName(), requestData.getArrivalZip());
-		
 		
 		Ride newRide = Ride.builder()
 			.driver(driver)
@@ -43,7 +50,22 @@ public class RideService
 		return rideRepository.save(newRide);
 	}
 	
+	@Transactional
+	public void deleteAllRidesFromUser(Long driverId)
+	{
+		rideRepository.deleteByDriver_Id(driverId);
+	}
 	
+	private void checkVehicleCompatibilityWithRequestedRide(final User driver, final short ridePlace)
+	{
+		//if the user did not have a Car, carService will throw a ResourceNotFoundException
+		Car driverCar = carService.getCarFromUserProfile(driver.getId());
+		
+		if (driverCar.getNbSeats() < ridePlace)
+		{
+			throw new RideAvailablePlaceInvalidException(driver.getId(), ridePlace, driverCar.getNbSeats());
+		}
+	}
 //	@Transactional
 //	public PassengerReservation reservePlace(Long rideId)
 //	{

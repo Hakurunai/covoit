@@ -54,7 +54,13 @@ public class CarService
 		return carRepository.save(car);
 	}
 	
-	public Optional<Car> getCarFromUserProfile(Long userProfileId)
+	public Car getCarFromUserProfile(Long userProfileId)
+	{
+		return getCarFromUserProfileInternal(userProfileId).orElseThrow
+			(() -> new ResourceNotFoundException("Car", "from UserId", userProfileId));
+	}
+	
+	public Optional<Car> getCarFromUserProfileInternal(Long userProfileId)
 	{
 		return carRepository.findByUserProfileId(userProfileId);
 	}

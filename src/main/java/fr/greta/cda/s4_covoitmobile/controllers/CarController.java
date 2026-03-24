@@ -44,12 +44,8 @@ public class CarController
 	public ResponseEntity<GetCarResponse> getCarData()
 	{
 		final Long userId = SecurityUtils.getAuthenticatedUser().getId();
-		Optional<Car> carResult = carService.getCarFromUserProfile(userId);
 		
-		if (carResult.isEmpty())
-		{return ResponseEntity.noContent().build();}
-		
-		Car car = carResult.get();
+		Car car = carService.getCarFromUserProfile(userId);
 		GetCarResponse response = new GetCarResponse(
 			car.getId(),
 			car.getBrand().getName(),

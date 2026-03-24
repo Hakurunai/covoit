@@ -21,8 +21,6 @@ public class CreateTripResponse
 	
 	private LocalDateTime departDate;
 	
-	private String model;
-	
 	private short availablePlaces;
 	
 	private String departureCityName;

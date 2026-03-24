@@ -6,10 +6,7 @@ import fr.greta.cda.s4_covoitmobile.dto.user.userprofile.CreateUserProfileReques
 import fr.greta.cda.s4_covoitmobile.exceptions.AlreadyExistException;
 import fr.greta.cda.s4_covoitmobile.models.CarBrand;
 import fr.greta.cda.s4_covoitmobile.models.User;
-import fr.greta.cda.s4_covoitmobile.services.AccountRoleService;
-import fr.greta.cda.s4_covoitmobile.services.AccountStatusService;
-import fr.greta.cda.s4_covoitmobile.services.CarService;
-import fr.greta.cda.s4_covoitmobile.services.UserService;
+import fr.greta.cda.s4_covoitmobile.services.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +30,7 @@ public class DatabaseInitializer implements CommandLineRunner
 	
 	private final UserService userService;
 	private final CarService carService;
+	private final RideService rideService;
 	
 	private final Environment env;
 	@Value("${covoit.app.defaultAdminEmail}")
@@ -66,7 +64,6 @@ public class DatabaseInitializer implements CommandLineRunner
 		if (carService.isEmpty())
 		{
 			log.info("Loading car brand from csv");
-			
 			
 			try (InputStream inputStream = getClass().getResourceAsStream("/data/car_brands.csv");
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)))
@@ -110,7 +107,7 @@ public class DatabaseInitializer implements CommandLineRunner
 	{
 		User user = userService.getUserByMail(profileMail);
 		
-		if (!carService.getCarFromUserProfile(user.getId()).isEmpty())
+		if (!carService.getCarFromUserProfileInternal(user.getId()).isEmpty())
 		{return;}
 		
 		final Long brandId = 3L;
@@ -176,6 +173,9 @@ public class DatabaseInitializer implements CommandLineRunner
 	{
 		if (!userService.existByMail(mail))
 		{return;}
+		
+		User user = userService.getUserByMail(mail);
+		rideService.deleteAllRidesFromUser(user.getId());
 		userService.deleteUserByMail(mail);
 	}
 	

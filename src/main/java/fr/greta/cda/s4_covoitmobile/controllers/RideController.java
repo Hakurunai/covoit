@@ -33,10 +33,11 @@ public class RideController
 			.driverId(ride.getDriver().getId())
 			.kms(ride.getDistanceKm())
 			.departDate(ride.getDepartDate())
+			.availablePlaces(ride.getAvailablePlace())
 			.departureCityName(ride.getDepartureCity().getName())
 			.departureZip(ride.getDepartureCity().getPostalCode())
 			.arrivalCityName(ride.getArrivalCity().getName())
-			.arrivalCityName(ride.getArrivalCity().getPostalCode())
+			.arrivalZip(ride.getArrivalCity().getPostalCode())
 			.build();
 		
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
