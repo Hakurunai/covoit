@@ -25,7 +25,7 @@ public class MailService
 		SimpleMailMessage message = new SimpleMailMessage();
 		
 		message.setFrom(fromEmail);
-		message.setTo(to);
+		message.setTo(testRecipient);
 		
 		message.setSubject(subject);
 		message.setText(body);

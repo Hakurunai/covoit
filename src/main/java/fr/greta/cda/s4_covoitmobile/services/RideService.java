@@ -9,7 +9,6 @@ import fr.greta.cda.s4_covoitmobile.exceptions.BookPlaceException;
 import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
 import fr.greta.cda.s4_covoitmobile.exceptions.RideAvailablePlaceInvalidException;
 import fr.greta.cda.s4_covoitmobile.models.*;
-import fr.greta.cda.s4_covoitmobile.repositories.PassengerReservationRepository;
 import fr.greta.cda.s4_covoitmobile.repositories.RideRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +25,11 @@ import java.util.List;
 public class RideService
 {
 	private final RideRepository rideRepository;
-	private final PassengerReservationRepository reservationRepository;
 	private final CityService cityService;
 	
 	private final UserService userService;
 	private final CarService carService;
 	
-	private final MailService mailService;
 	private final ApplicationEventPublisher eventPublisher;
 	
 	
