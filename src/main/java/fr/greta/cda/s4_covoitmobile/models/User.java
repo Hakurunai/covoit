@@ -53,6 +53,6 @@ public class User extends TimeStampedEntity
 	@ToString.Exclude
 	private RefreshToken refreshToken;
 	
-	@OneToMany(mappedBy = "idUser")
+	@OneToMany(mappedBy = "passenger")
 	private List<PassengerReservation> myReservations = new ArrayList<>();
 }

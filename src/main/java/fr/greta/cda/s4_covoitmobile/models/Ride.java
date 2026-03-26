@@ -39,4 +39,10 @@ public class Ride
 	
 	@OneToMany(mappedBy = "ride", cascade = CascadeType.ALL)
 	private List<PassengerReservation> reservations = new ArrayList<>();
+	
+	public void addReservation(PassengerReservation reservation)
+	{
+		this.reservations.add(reservation);
+		reservation.setRide(this);
+	}
 }

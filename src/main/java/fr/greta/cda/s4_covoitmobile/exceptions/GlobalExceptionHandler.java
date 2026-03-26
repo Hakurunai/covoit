@@ -19,6 +19,14 @@ import java.util.List;
 @Slf4j
 public class GlobalExceptionHandler
 {
+	@ExceptionHandler(BookPlaceException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErrorMessageResponse handleResourceNotFound(BookPlaceException ex)
+	{
+		log.warn("Issue during book creation : {}}", ex.getMessage());
+		return buildError(HttpStatus.CONFLICT, ex.getMessage());
+	}
+	
 	@ExceptionHandler(RideAvailablePlaceInvalidException.class)
 	@ResponseStatus(HttpStatus.CONFLICT)
 	public ErrorMessageResponse handleResourceNotFound(RideAvailablePlaceInvalidException ex)

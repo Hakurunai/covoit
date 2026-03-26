@@ -28,5 +28,5 @@ public class PassengerReservation
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(nullable = false)
-	private User idUser;
+	private User passenger;
 }

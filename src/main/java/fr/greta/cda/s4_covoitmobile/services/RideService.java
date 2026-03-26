@@ -1,17 +1,24 @@
 package fr.greta.cda.s4_covoitmobile.services;
 
 import fr.greta.cda.s4_covoitmobile.dto.trip.CreateTripRequest;
+import fr.greta.cda.s4_covoitmobile.dto.trip.GetTripDetailResponse;
+import fr.greta.cda.s4_covoitmobile.dto.trip.book.BookAPlaceOnRideRequest;
+import fr.greta.cda.s4_covoitmobile.dto.user.DetailedUserContactResponse;
+import fr.greta.cda.s4_covoitmobile.event.RideCanceledEvent;
+import fr.greta.cda.s4_covoitmobile.exceptions.BookPlaceException;
+import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
 import fr.greta.cda.s4_covoitmobile.exceptions.RideAvailablePlaceInvalidException;
-import fr.greta.cda.s4_covoitmobile.models.Car;
-import fr.greta.cda.s4_covoitmobile.models.City;
-import fr.greta.cda.s4_covoitmobile.models.Ride;
-import fr.greta.cda.s4_covoitmobile.models.User;
+import fr.greta.cda.s4_covoitmobile.models.*;
 import fr.greta.cda.s4_covoitmobile.repositories.PassengerReservationRepository;
 import fr.greta.cda.s4_covoitmobile.repositories.RideRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -24,6 +31,9 @@ public class RideService
 	
 	private final UserService userService;
 	private final CarService carService;
+	
+	private final MailService mailService;
+	private final ApplicationEventPublisher eventPublisher;
 	
 	
 	@Transactional
@@ -56,6 +66,141 @@ public class RideService
 		rideRepository.deleteByDriver_Id(driverId);
 	}
 	
+	public GetTripDetailResponse getTripDetail(final Long tripId)
+	{
+		Ride targetedRide = getTripInternal(tripId);
+		
+		User driver = targetedRide.getDriver();
+		UserProfile driverProfile = driver.getUserProfile();
+		
+		final short availablePlaces = (short) (targetedRide.getAvailablePlace() -
+											   targetedRide.getReservations().size());
+		
+		boolean isPrivileged = SecurityUtils.getAuthenticatedUser().isAdmin()
+							   || checkIfAuthenticatedUserIsPartOfTheTrip(targetedRide);
+		
+		DetailedUserContactResponse.DetailedUserContactResponseBuilder driverBuilder = DetailedUserContactResponse
+			.builder()
+			.id(driver.getId())
+			.firstName(driverProfile.getFirstname());
+		
+		if (isPrivileged)
+		{
+			driverBuilder
+				.lastName(driverProfile.getLastname())
+				.email(driver.getEmail())
+				.phone(driverProfile.getPhone());
+		}
+		
+		List<DetailedUserContactResponse> passengerContacts = new ArrayList<>();
+		if (isPrivileged)
+		{
+			passengerContacts = extractPassengersFromRide(targetedRide).stream()
+				.map(DetailedUserContactResponse::new)
+				.toList();
+		}
+		
+		return GetTripDetailResponse.builder()
+			.kms(targetedRide.getDistanceKm())
+			.departDate(targetedRide.getDepartDate())
+			.availablePlaces(availablePlaces)
+			.departureCityName(targetedRide.getDepartureCity().getName())
+			.departureZip(targetedRide.getDepartureCity().getPostalCode())
+			.arrivalCityName(targetedRide.getArrivalCity().getName())
+			.arrivalZip(targetedRide.getArrivalCity().getPostalCode())
+			.driverContact(driverBuilder.build())
+			.passengerContacts(passengerContacts)
+			.build();
+	}
+	
+	@Transactional
+	public void bookAPlaceOnRide(final Long tripId, final BookAPlaceOnRideRequest request)
+	{
+		SecurityUtils.checkOwnership(request.getPassengerId());
+		
+		Ride ride = getTripInternal(tripId);
+		
+		if (ride.getAvailablePlace() - ride.getReservations().size() <= 0)
+		{
+			throw new BookPlaceException("No more places available for this trip");
+		}
+		
+		User potentialPassenger = userService.getUserDetail(request.getPassengerId());
+		
+		if (checkIfUserIsPartOfTheTrip(ride, potentialPassenger))
+		{
+			throw new BookPlaceException(
+				String.format("%s %s %s", "User ", request.getPassengerId(), " is already present in the trip"));
+		}
+		
+		PassengerReservation newReservation = new PassengerReservation();
+		newReservation.setCancelled(false);
+		newReservation.setPassenger(potentialPassenger);
+		
+		ride.addReservation(newReservation);
+		
+		rideRepository.save(ride);
+	}
+	
+	@Transactional
+	public void cancelRide(final Long tripId)
+	{
+		Ride ride = getTripInternal(tripId);
+		
+		SecurityUtils.checkOwnership(ride.getDriver().getId());
+		
+		ride.setCancelled(true);
+		
+		List<String> passengerEmails = new ArrayList<>(ride.getReservations().size());
+		ride.getReservations().forEach(res ->
+		{
+			res.setCancelled(true);
+			passengerEmails.add(res.getPassenger().getEmail());
+		});
+		
+		rideRepository.save(ride);
+	}
+	
+	private Ride getTripInternal(Long tripId)
+	{
+		return rideRepository.findByIdAndIsCancelledFalse(tripId)
+			.orElseThrow(() -> new ResourceNotFoundException("Trip", "Id", tripId));
+	}
+	
+	private boolean checkIfAuthenticatedUserIsPartOfTheTrip(final Ride targetedRide)
+	{
+		User authenticatedUser = SecurityUtils.getAuthenticatedUser().getUser();
+		
+		return checkIfUserIsPartOfTheTrip(targetedRide, authenticatedUser);
+	}
+	
+	private boolean checkIfUserIsPartOfTheTrip(final Ride targetedRide, final User authenticatedUser)
+	{
+		if (targetedRide.getDriver().getId().equals(authenticatedUser.getId()))
+		{return true;}
+		
+		List<User> passengers = extractPassengersFromRide(targetedRide);
+		
+		for (User passenger : passengers)
+		{
+			if (passenger.getId().equals(authenticatedUser.getId()))
+			{return true;}
+		}
+		return false;
+	}
+	
+	private List<User> extractPassengersFromRide(final Ride targetedRide)
+	{
+		List<User> extractedPassengerList = new ArrayList<>();
+		List<PassengerReservation> reservations = targetedRide.getReservations();
+		
+		for (PassengerReservation reservation : reservations)
+		{
+			extractedPassengerList.add(reservation.getPassenger());
+		}
+		return extractedPassengerList;
+	}
+	
 	private void checkVehicleCompatibilityWithRequestedRide(final User driver, final short ridePlace)
 	{
 		//if the user did not have a Car, carService will throw a ResourceNotFoundException
@@ -66,6 +211,7 @@ public class RideService
 			throw new RideAvailablePlaceInvalidException(driver.getId(), ridePlace, driverCar.getNbSeats());
 		}
 	}
+
 //	@Transactional
 //	public PassengerReservation reservePlace(Long rideId)
 //	{
