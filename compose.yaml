@@ -32,6 +32,16 @@ services:
     networks:
       - covoit-network
 
+  mailpit:
+    image: axllent/mailpit
+    container_name: covoit-mailpit
+    restart: on-failure
+    ports:
+      - "8025:8025" # Interface Web
+      - "1025:1025" # Server SMTP
+    networks:
+      - covoit-network
+
 networks:
   covoit-network:
     driver: bridge

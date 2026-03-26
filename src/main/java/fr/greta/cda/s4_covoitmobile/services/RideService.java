@@ -159,6 +159,12 @@ public class RideService
 		});
 		
 		rideRepository.save(ride);
+		
+		
+		if (!passengerEmails.isEmpty())
+		{
+			eventPublisher.publishEvent(new RideCanceledEvent(passengerEmails, ride.getDepartDate().toString()));
+		}
 	}
 	
 	private Ride getTripInternal(Long tripId)
