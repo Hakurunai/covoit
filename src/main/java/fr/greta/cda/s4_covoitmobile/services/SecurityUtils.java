@@ -15,7 +15,7 @@ public class SecurityUtils
 	{
 		return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
 			.map(Authentication::getPrincipal)
-			.filter(principal -> principal instanceof UserDetailsImpl)
+			.filter(UserDetailsImpl.class::isInstance)
 			.map(UserDetailsImpl.class::cast)
 			.orElseThrow(() -> new AuthorizationDeniedException("Access denied"));
 	}
