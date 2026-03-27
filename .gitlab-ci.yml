@@ -57,7 +57,7 @@ github-mirror:
   before_script:
     - apk add git
   script:
-    - git push --force https://oauth2:${GITHUB_TOKEN}@github.com/Hakurunai/covoit.git HEAD:${CI_COMMIT_REF_NAME}
+    - git push --force https://oauth2:${GITHUB_TOKEN}@github.com/Hakurunai/covoit.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
   only:
     - main
     - develop
