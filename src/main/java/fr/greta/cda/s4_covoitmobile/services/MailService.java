@@ -16,7 +16,7 @@ public class MailService
 	@Value("${app.mail.from}")
 	private String fromEmail;
 	
-	@Value("${app.mail.test-recipient:default@test.com}")
+	@Value("${app.mail.test-recipient}")
 	private String testRecipient;
 	
 	@Async
