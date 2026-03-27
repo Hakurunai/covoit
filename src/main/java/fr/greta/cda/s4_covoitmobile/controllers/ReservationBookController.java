@@ -1,6 +1,7 @@
 package fr.greta.cda.s4_covoitmobile.controllers;
 
 import fr.greta.cda.s4_covoitmobile.dto.trip.book.BookAPlaceOnRideRequest;
+import fr.greta.cda.s4_covoitmobile.dto.trip.book.CancelBookRequest;
 import fr.greta.cda.s4_covoitmobile.security.annotations.IsUser;
 import fr.greta.cda.s4_covoitmobile.services.RideService;
 import jakarta.validation.Valid;
@@ -24,5 +25,15 @@ public class ReservationBookController
 	{
 		rideService.bookAPlaceOnRide(tripId, request);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
+	}
+	
+	@DeleteMapping("/{tripId}")
+	@IsUser
+	public ResponseEntity<Void> cancelBookOnTrip(
+		@PathVariable Long tripId,
+		@Valid @RequestBody CancelBookRequest request)
+	{
+		rideService.cancelBookOnTrip(tripId, request);
+		return ResponseEntity.status(HttpStatus.ACCEPTED).build();
 	}
 }

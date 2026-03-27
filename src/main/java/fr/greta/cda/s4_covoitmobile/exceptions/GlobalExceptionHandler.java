@@ -19,6 +19,14 @@ import java.util.List;
 @Slf4j
 public class GlobalExceptionHandler
 {
+	@ExceptionHandler(BookCancellationException.class)
+	@ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+	public ErrorMessageResponse handleResourceNotFound(BookCancellationException ex)
+	{
+		log.warn("Issue during book cancellation : {}}", ex.getMessage());
+		return buildError(HttpStatus.CONFLICT, ex.getMessage());
+	}
+	
 	@ExceptionHandler(BookPlaceException.class)
 	@ResponseStatus(HttpStatus.CONFLICT)
 	public ErrorMessageResponse handleResourceNotFound(BookPlaceException ex)

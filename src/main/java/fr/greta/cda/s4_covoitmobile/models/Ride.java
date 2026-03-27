@@ -42,7 +42,15 @@ public class Ride
 	
 	public void addReservation(PassengerReservation reservation)
 	{
+		reservation.setCancelled(false);
 		this.reservations.add(reservation);
 		reservation.setRide(this);
+	}
+	
+	public List<PassengerReservation> getActiveReservations()
+	{
+		return reservations.stream()
+			.filter(res -> !res.isCancelled())
+			.toList();
 	}
 }

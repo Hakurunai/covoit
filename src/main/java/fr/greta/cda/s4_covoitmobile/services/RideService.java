@@ -3,17 +3,21 @@ package fr.greta.cda.s4_covoitmobile.services;
 import fr.greta.cda.s4_covoitmobile.dto.trip.CreateTripRequest;
 import fr.greta.cda.s4_covoitmobile.dto.trip.GetTripDetailResponse;
 import fr.greta.cda.s4_covoitmobile.dto.trip.book.BookAPlaceOnRideRequest;
+import fr.greta.cda.s4_covoitmobile.dto.trip.book.CancelBookRequest;
 import fr.greta.cda.s4_covoitmobile.dto.user.DetailedUserContactResponse;
 import fr.greta.cda.s4_covoitmobile.event.RideCanceledEvent;
+import fr.greta.cda.s4_covoitmobile.exceptions.BookCancellationException;
 import fr.greta.cda.s4_covoitmobile.exceptions.BookPlaceException;
 import fr.greta.cda.s4_covoitmobile.exceptions.ResourceNotFoundException;
 import fr.greta.cda.s4_covoitmobile.exceptions.RideAvailablePlaceInvalidException;
 import fr.greta.cda.s4_covoitmobile.models.*;
 import fr.greta.cda.s4_covoitmobile.repositories.RideRepository;
+import fr.greta.cda.s4_covoitmobile.security.UserDetailsImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -117,7 +121,7 @@ public class RideService
 		
 		Ride ride = getTripInternal(tripId);
 		
-		if (ride.getAvailablePlace() - ride.getReservations().size() <= 0)
+		if (ride.getAvailablePlace() - ride.getActiveReservations().size() <= 0)
 		{
 			throw new BookPlaceException("No more places available for this trip");
 		}
@@ -148,11 +152,14 @@ public class RideService
 		
 		ride.setCancelled(true);
 		
-		List<String> passengerEmails = new ArrayList<>(ride.getReservations().size());
+		List<String> passengerEmails = new ArrayList<>(ride.getActiveReservations().size());
 		ride.getReservations().forEach(res ->
 		{
-			res.setCancelled(true);
-			passengerEmails.add(res.getPassenger().getEmail());
+			if (!res.isCancelled())
+			{
+				res.setCancelled(true);
+				passengerEmails.add(res.getPassenger().getEmail());
+			}
 		});
 		
 		rideRepository.save(ride);
@@ -161,6 +168,46 @@ public class RideService
 		if (!passengerEmails.isEmpty())
 		{
 			eventPublisher.publishEvent(new RideCanceledEvent(passengerEmails, ride.getDepartDate().toString()));
+		}
+	}
+	
+	@Transactional
+	public void cancelBookOnTrip(final Long tripId, final CancelBookRequest request)
+	{
+		Ride ride = getTripInternal(tripId);
+		
+		if (!isAPassengerInTheRide(ride, request.getPassengerId()))
+		{
+			throw new BookCancellationException(
+				"Passenger " + request.getPassengerId() + " was not found on trip " + tripId);
+		}
+		
+		if (ride.getDriver().getId().equals(request.getPassengerId()))
+		{
+			throw new BookCancellationException("A driver on a Ride cannot be removed from her as a passenger");
+		}
+		
+		final UserDetailsImpl authenticatedUser = SecurityUtils.getAuthenticatedUser();
+		final Long authUserId = authenticatedUser.getId();
+		
+		if (authenticatedUser.isAdmin() ||
+			authUserId.equals(ride.getDriver().getId()) ||
+			isAPassengerInTheRide(ride, authUserId))
+		{
+			PassengerReservation reservation = ride.getReservations().stream()
+				.filter(res -> res.getPassenger().getId().equals(request.getPassengerId()))
+				.filter(res -> !res.isCancelled())
+				.findFirst()
+				.orElseThrow(() -> new BookCancellationException("Active reservation not found"));
+			
+			reservation.setCancelled(true);
+			
+			rideRepository.save(ride);
+		}
+		else
+		{
+			throw new AuthorizationDeniedException("User " + authUserId + " cannot remove user " +
+												   request.getPassengerId() + " from Ride " + ride.getId());
 		}
 	}
 	
@@ -195,13 +242,24 @@ public class RideService
 	private List<User> extractPassengersFromRide(final Ride targetedRide)
 	{
 		List<User> extractedPassengerList = new ArrayList<>();
-		List<PassengerReservation> reservations = targetedRide.getReservations();
+		List<PassengerReservation> reservations = targetedRide.getActiveReservations();
 		
 		for (PassengerReservation reservation : reservations)
 		{
 			extractedPassengerList.add(reservation.getPassenger());
 		}
 		return extractedPassengerList;
+	}
+	
+	private boolean isAPassengerInTheRide(final Ride targetedRide, final Long passengerId)
+	{
+		List<User> passengers = extractPassengersFromRide(targetedRide);
+		for (User passenger : passengers)
+		{
+			if (passenger.getId().equals(passengerId))
+			{return true;}
+		}
+		return false;
 	}
 	
 	private void checkVehicleCompatibilityWithRequestedRide(final User driver, final short ridePlace)
@@ -214,56 +272,4 @@ public class RideService
 			throw new RideAvailablePlaceInvalidException(driver.getId(), ridePlace, driverCar.getNbSeats());
 		}
 	}
-
-//	@Transactional
-//	public PassengerReservation reservePlace(Long rideId)
-//	{
-//		Ride ride = rideRepository.findById(rideId)
-//			.orElseThrow(() -> new ResourceNotFoundException("Ride", "id", rideId));
-//
-//		Long currentUserId = SecurityUtils.getAuthenticatedUser().getId();
-//
-//		// 1. Vérifications métier
-//		if (ride.getDriver().getId().equals(currentUserId)) {
-//			throw new IllegalStateException("Le conducteur ne peut pas réserver son propre trajet");
-//		}
-//
-//		if (ride.getAvailablePlace() <= 0) {
-//			throw new IllegalStateException("Plus de places disponibles");
-//		}
-//
-//		if (reservationRepository.existsByRideIdAndIdUserIdAndIsCancelledFalse(rideId, currentUserId))
-//		{
-//			throw new AlreadyExistException("Vous avez déjà une réservation active pour ce trajet");
-//		}
-//
-//		// 2. Création de la réservation
-//		PassengerReservation res = new PassengerReservation();
-//		res.setRide(ride);
-//		res.setIdUser(userService.getUserById(currentUserId));
-//
-//		// 3. Mise à jour du trajet (Décrémentation)
-//		ride.setAvailablePlace((byte) (ride.getAvailablePlace() - 1));
-//
-//		return reservationRepository.save(res);
-//	}
-//
-//	@Transactional
-//	public void cancelReservation(Long reservationId)
-//	{
-//		PassengerReservation res = reservationRepository.findById(reservationId)
-//			.orElseThrow(() -> new ResourceNotFoundException("Reservation", "id", reservationId));
-//
-//		// Sécurité : Seul le passager concerné peut annuler sa propre réservation
-//		SecurityUtils.checkOwnership(res.getIdUser().getId());
-//
-//		if (!res.isCancelled()) {
-//			res.setCancelled(true);
-//			// On rend la place au trajet
-//			Ride ride = res.getRide();
-//			ride.setAvailablePlace((byte) (ride.getAvailablePlace() + 1));
-//
-//			reservationRepository.save(res);
-//		}
-//	}
 }
