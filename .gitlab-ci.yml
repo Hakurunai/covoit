@@ -2,6 +2,7 @@ stages:
   - build
   - test
   - analyze
+  - sync
   - package-docker
 
 variables:
@@ -49,6 +50,20 @@ sonarqube-check:
   script:
     - mvn sonar:sonar -Dspring.profiles.active=test -Dsonar.qualitygate.wait=true
   allow_failure: false
+
+github-mirror:
+  stage: sync
+  image: alpine:latest
+  before_script:
+    - apk add git
+  script:
+    - git push --force https://oauth2:${GITHUB_TOKEN}@github.com/Hakurunai/covoit.git HEAD:${CI_COMMIT_REF_NAME}
+  only:
+    - main
+    - develop
+  dependencies:
+    - sonarqube-check
+
 
 # Docker avec KANIKO (Pas de dind, pas de privilèges requis)
 docker-build:
